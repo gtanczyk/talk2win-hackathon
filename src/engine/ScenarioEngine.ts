@@ -76,7 +76,7 @@ export class ScenarioEngine {
     const col = index % 5;
     const currentTime = Date.now();
     const x = (col + Math.random() - Math.random()) * 110;
-    const y = (row + Math.random() - Math.random()) * 90;
+    const y = (row + Math.random() - Math.random()) * 50;
 
     return {
       id: `agent-${index}`,

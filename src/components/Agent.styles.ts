@@ -11,13 +11,20 @@ interface StyledAgentProps {
 export const StyledAgent = styled.div<StyledAgentProps>`
   position: absolute;
   transform: translate(${(props) => props.x}px, ${(props) => props.y}px);
+  z-index:10;
   left: 50%;
-  bottom: 50%;
+  bottom: 40%;
   display: flex;
   flex-direction: column;
   align-items: center;
   transform-origin: bottom center;
   transition: all 0.3s ease;
+ // add space between agents
+  margin-right: 10px;
+  marign-left: 10px;
+  
+ 
+  
 
   /* Body language animations */
   animation: ${(props) => {
