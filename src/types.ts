@@ -33,3 +33,45 @@ export const SCENARIOS: ScenarioConfig[] = [
         description: 'Create your own scenario'
     }
 ];
+
+export enum Mood {
+    HAPPY = 'HAPPY',
+    SAD = 'SAD',
+    ANGRY = 'ANGRY',
+    NEUTRAL = 'NEUTRAL',
+    EXCITED = 'EXCITED',
+    SCARED = 'SCARED',
+    CONFUSED = 'CONFUSED'
+}
+
+export enum FacialExpression {
+    SMILE = 'SMILE',
+    FROWN = 'FROWN',
+    NEUTRAL = 'NEUTRAL',
+    OPEN_MOUTH = 'OPEN_MOUTH',
+    RAISED_EYEBROWS = 'RAISED_EYEBROWS',
+    SQUINTING = 'SQUINTING',
+    WIDE_EYES = 'WIDE_EYES'
+}
+
+export enum BodyLanguageExpression {
+    STANDING = 'STANDING',
+    ARMS_CROSSED = 'ARMS_CROSSED',
+    HANDS_ON_HIPS = 'HANDS_ON_HIPS',
+    POINTING = 'POINTING',
+    WAVING = 'WAVING',
+    JUMPING = 'JUMPING',
+    COWERING = 'COWERING',
+    CHEERING = 'CHEERING'
+}
+
+export interface Agent {
+    id: string;
+    x: number;
+    y: number;
+    mood: Mood;
+    facialExpression: FacialExpression;
+    bodyLanguageExpression: BodyLanguageExpression;
+    thinkingState: string;
+    spokenText: string;
+}
