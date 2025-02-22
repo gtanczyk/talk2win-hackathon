@@ -34,6 +34,12 @@ const StyledAgent = styled.div<StyledAgentProps>`
                 return 'hostileGesture 1.5s infinite';
             case BodyLanguageExpression.PROJECTILE_THROW:
                 return 'projectileThrow 0.8s infinite';
+            case BodyLanguageExpression.RAGE_THROW:
+                return 'rageThrow 0.6s infinite';
+            case BodyLanguageExpression.FRUSTRATED_GESTURE:
+                return 'frustratedGesture 2s infinite';
+            case BodyLanguageExpression.PLEADING:
+                return 'pleading 1.5s infinite';
             default:
                 return 'none';
         }
@@ -48,6 +54,10 @@ const StyledAgent = styled.div<StyledAgentProps>`
                 return 'brightness(0.8)';
             case Mood.ANGRY:
                 return 'sepia(0.5) hue-rotate(-20deg)';
+            case Mood.EXCITED:
+                return 'brightness(1.3) saturate(1.2)';
+            case Mood.SCARED:
+                return 'brightness(0.9) sepia(0.2)';
             default:
                 return 'none';
         }
@@ -92,6 +102,32 @@ const StyledAgent = styled.div<StyledAgentProps>`
         75% { transform: rotate(20deg) translateY(-3px); }
         100% { transform: rotate(0deg) translateY(0); }
     }
+
+    @keyframes rageThrow {
+        0% { transform: scale(1) rotate(0deg); }
+        25% { transform: scale(1.1) rotate(-15deg); }
+        50% { transform: scale(1.2) rotate(30deg); }
+        75% { transform: scale(1.1) rotate(-10deg); }
+        100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes frustratedGesture {
+        0% { transform: translateY(0) rotate(0deg); }
+        15% { transform: translateY(-5px) rotate(-3deg); }
+        30% { transform: translateY(0) rotate(3deg); }
+        45% { transform: translateY(-3px) rotate(-2deg); }
+        60% { transform: translateY(0) rotate(2deg); }
+        75% { transform: translateY(-2px) rotate(-1deg); }
+        100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    @keyframes pleading {
+        0% { transform: translateY(0) scale(1); }
+        25% { transform: translateY(-3px) scale(1.05); }
+        50% { transform: translateY(0) scale(1); }
+        75% { transform: translateY(-2px) scale(1.03); }
+        100% { transform: translateY(0) scale(1); }
+    }
 `;
 
 const Head = styled.div<{ expression: FacialExpression }>`
@@ -113,7 +149,16 @@ const Eyes = styled.div<{ expression: FacialExpression }>`
     &::before, &::after {
         content: '';
         width: 6px;
-        height: ${props => props.expression === FacialExpression.WIDE_EYES ? '8px' : '4px'};
+        height: ${props => {
+            switch (props.expression) {
+                case FacialExpression.WIDE_EYES:
+                    return '8px';
+                case FacialExpression.SQUINTING:
+                    return '2px';
+                default:
+                    return '4px';
+            }
+        }};
         background-color: #000;
         border-radius: 50%;
         transition: all 0.3s ease;
@@ -156,9 +201,16 @@ const Body = styled.div<{ bodyLanguage: BodyLanguageExpression }>`
     background-color: #6b8e23;
     border-radius: 10px;
     position: relative;
-    transform: ${props => 
-        props.bodyLanguage === BodyLanguageExpression.ARMS_CROSSED ? 'scale(1.1, 0.9)' : 'none'
-    };
+    transform: ${props => {
+        switch (props.bodyLanguage) {
+            case BodyLanguageExpression.ARMS_CROSSED:
+                return 'scale(1.1, 0.9)';
+            case BodyLanguageExpression.PLEADING:
+                return 'scale(0.95, 1.05)';
+            default:
+                return 'none';
+        }
+    }};
 `;
 
 const Arm = styled.div<{ side: 'left' | 'right', bodyLanguage: BodyLanguageExpression }>`
@@ -184,6 +236,12 @@ const Arm = styled.div<{ side: 'left' | 'right', bodyLanguage: BodyLanguageExpre
                 return props.side === 'right' ? 'rotate(-60deg)' : 'rotate(60deg)';
             case BodyLanguageExpression.PROJECTILE_THROW:
                 return props.side === 'right' ? 'rotate(-135deg)' : 'rotate(45deg)';
+            case BodyLanguageExpression.RAGE_THROW:
+                return props.side === 'right' ? 'rotate(-150deg)' : 'rotate(60deg)';
+            case BodyLanguageExpression.FRUSTRATED_GESTURE:
+                return props.side === 'right' ? 'rotate(-30deg)' : 'rotate(30deg)';
+            case BodyLanguageExpression.PLEADING:
+                return props.side === 'right' ? 'rotate(-15deg)' : 'rotate(15deg)';
             default:
                 return 'none';
         }
@@ -196,6 +254,12 @@ const Arm = styled.div<{ side: 'left' | 'right', bodyLanguage: BodyLanguageExpre
                 return 'shakeArm 1.5s infinite';
             case BodyLanguageExpression.PROJECTILE_THROW:
                 return props.side === 'right' ? 'projectileArm 0.8s infinite' : 'none';
+            case BodyLanguageExpression.RAGE_THROW:
+                return props.side === 'right' ? 'rageArm 0.6s infinite' : 'none';
+            case BodyLanguageExpression.FRUSTRATED_GESTURE:
+                return 'frustratedArm 2s infinite';
+            case BodyLanguageExpression.PLEADING:
+                return 'pleadingArm 1.5s infinite';
             default:
                 return 'none';
         }
@@ -222,6 +286,28 @@ const Arm = styled.div<{ side: 'left' | 'right', bodyLanguage: BodyLanguageExpre
         50% { transform: rotate(-135deg); }
         75% { transform: rotate(-100deg); }
         100% { transform: rotate(-45deg); }
+    }
+
+    @keyframes rageArm {
+        0% { transform: rotate(-60deg); }
+        25% { transform: rotate(-120deg); }
+        50% { transform: rotate(-150deg); }
+        75% { transform: rotate(-120deg); }
+        100% { transform: rotate(-60deg); }
+    }
+
+    @keyframes frustratedArm {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(20deg); }
+        50% { transform: rotate(-20deg); }
+        75% { transform: rotate(10deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    @keyframes pleadingArm {
+        0% { transform: rotate(15deg); }
+        50% { transform: rotate(30deg); }
+        100% { transform: rotate(15deg); }
     }
 `;
 

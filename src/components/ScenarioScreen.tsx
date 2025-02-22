@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { ScenarioType, SCENARIOS, Agent } from '../types';
+import { ScenarioType, SCENARIOS, Agent, ProjectileType } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { Agent as AgentComponent } from './Agent';
 import { getResponse } from '../engine/Gemini';
+import { Projectile } from './Projectile'; // Import Projectile component
 
 const Container = styled.div`
   display: flex;
@@ -136,10 +137,18 @@ interface ScenarioScreenProps {
   onBack: () => void;
 }
 
+interface AgentWithProjectile extends Agent {
+    projectile?: {
+      type: ProjectileType;
+      targetX: number;
+      targetY: number;
+    };
+  }
+
 export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, onBack }) => {
   const scenario = SCENARIOS.find((s) => s.type === scenarioType);
   const engineRef = useRef<ScenarioEngine | null>(null);
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agents, setAgents] = useState<AgentWithProjectile[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const animationFrameRef = useRef<number>();
@@ -212,7 +221,18 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         <PlaceholderText>{scenario.description}</PlaceholderText>
         <Stage>
           {agents.map((agent) => (
-            <AgentComponent key={agent.id} {...agent} />
+            <React.Fragment key={agent.id}>
+              <AgentComponent {...agent} />
+              {agent.projectile && (
+                <Projectile
+                  type={agent.projectile.type}
+                  x={agent.x}
+                  y={agent.y}
+                  targetX={agent.projectile.targetX}
+                  targetY={agent.projectile.targetY}
+                />
+              )}
+            </React.Fragment>
           ))}
         </Stage>
       </Content>

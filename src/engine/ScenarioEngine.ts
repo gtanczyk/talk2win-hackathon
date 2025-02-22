@@ -1,10 +1,18 @@
-import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression } from '../types';
+import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ProjectileType } from '../types';
+
+interface AgentWithProjectile extends Agent {
+  projectile?: {
+    type: ProjectileType;
+    targetX: number;
+    targetY: number;
+  };
+}
 
 const SPEECH_DURATION = 2000; // Duration in milliseconds for speech to remain visible
 const THOUGHT_DURATION = 3000; // Duration in milliseconds for thoughts to remain visible
 
 export class ScenarioEngine {
-  private agents: Agent[] = [];
+  private agents: AgentWithProjectile[] = [];
   private scenarioType: ScenarioType;
   private lastUpdateTime: number = 0;
 
@@ -19,6 +27,7 @@ export class ScenarioEngine {
 
     for (let i = 0; i < count; i++) {
       this.agents.push(this.createAgent(i));
+      
     }
   }
 
@@ -35,16 +44,18 @@ export class ScenarioEngine {
     }
   }
 
-  private createAgent(index: number): Agent {
+  private createAgent(index: number): AgentWithProjectile {
     // Calculate position in a grid-like pattern
     const row = Math.floor(index / 5);
     const col = index % 5;
     const currentTime = Date.now();
+    const x = 100 + col * 80;
+    const y = 50 + row * 60;
 
     return {
       id: `agent-${index}`,
-      x: 100 + col * 80, // Space agents horizontally
-      y: 50 + row * 60, // Space agents vertically
+      x,
+      y,
       mood: Mood.NEUTRAL,
       facialExpression: FacialExpression.NEUTRAL,
       bodyLanguageExpression: BodyLanguageExpression.STANDING,
@@ -55,7 +66,7 @@ export class ScenarioEngine {
     };
   }
 
-  public getAgents(): Agent[] {
+  public getAgents(): AgentWithProjectile[] {
     return [...this.agents];
   }
 
@@ -106,11 +117,12 @@ export class ScenarioEngine {
     const currentTime = Date.now();
 
     // Update existing agents with new states while preserving positions
+    // Update existing agents with new states while preserving positions and projectiles
     newAgents.forEach((newAgent) => {
       const existingAgent = this.agents.find((a) => a.id === newAgent.id);
       if (existingAgent) {
         // Preserve the position of the existing agent
-        const { x, y } = existingAgent;
+        const { x, y, projectile } = existingAgent;
 
         // Update timestamps only if text has changed
         const updateSpokenTime = newAgent.spokenText !== existingAgent.spokenText;
@@ -119,6 +131,7 @@ export class ScenarioEngine {
         Object.assign(existingAgent, newAgent, {
           x,
           y,
+          projectile,
           lastSpokenTime: updateSpokenTime ? currentTime : existingAgent.lastSpokenTime,
           lastThoughtTime: updateThoughtTime ? currentTime : existingAgent.lastThoughtTime,
         });
@@ -138,20 +151,22 @@ export class ScenarioEngine {
     this.agents = this.agents.filter((agent) => newAgents.some((newAgent) => newAgent.id === agent.id));
   }
 
-  private updateAgentState(agent: Agent): void {
+  private updateAgentState(agent: AgentWithProjectile): void {
     const currentTime = Date.now();
     const previousSpokenText = agent.spokenText;
     const previousThinkingState = agent.thinkingState;
-
     // Fallback random state updates
     const randomMood = Object.values(Mood)[Math.floor(Math.random() * Object.values(Mood).length)];
-
-    const randomFacialExpression =
-      Object.values(FacialExpression)[Math.floor(Math.random() * Object.values(FacialExpression).length)];
-
-    const randomBodyLanguage =
-      Object.values(BodyLanguageExpression)[Math.floor(Math.random() * Object.values(BodyLanguageExpression).length)];
-
+    const randomFacialExpression = Object.values(FacialExpression)[Math.floor(Math.random() * Object.values(FacialExpression).length)];
+    const randomBodyLanguage = Object.values(BodyLanguageExpression)[Math.floor(Math.random() * Object.values(BodyLanguageExpression).length)];
+    
+    const hostileActions = [
+      BodyLanguageExpression.THROWING_OBJECT,
+      BodyLanguageExpression.HOSTILE_GESTURE,
+      BodyLanguageExpression.PROJECTILE_THROW,
+      BodyLanguageExpression.RAGE_THROW
+    ];
+      
     // Adjust probability of hostile actions based on scenario type
     if (this.scenarioType === ScenarioType.POLITICAL_RALLY) {
       // Higher chance of hostile actions in political rallies
@@ -161,6 +176,12 @@ export class ScenarioEngine {
           BodyLanguageExpression.HOSTILE_GESTURE,
           BodyLanguageExpression.PROJECTILE_THROW,
         ];
+        agent.bodyLanguageExpression = hostileActions[Math.floor(Math.random() * hostileActions.length)];
+        agent.mood = Mood.ANGRY;
+        return;
+      }
+    } else if (this.scenarioType === ScenarioType.ANNOUNCE_LAYOFFS) {
+      if (Math.random() < 0.5) {
         agent.bodyLanguageExpression = hostileActions[Math.floor(Math.random() * hostileActions.length)];
         agent.mood = Mood.ANGRY;
         return;
@@ -205,6 +226,9 @@ export class ScenarioEngine {
         'Take this!',
         'Feel my wrath!',
         'For honor!',
+        'Take this!', 'Feel my wrath!', 'For honor!', 'I will not back down!',
+        'Watch my rage!', 'You will fall!',
+        'Take this!', 'Feel my wrath!', 'For honor!'
       ],
       [ScenarioType.ANNOUNCE_LAYOFFS]: [
         'Oh no...',
@@ -224,6 +248,10 @@ export class ScenarioEngine {
         'Get off the stage!',
         'We oppose this!',
         'Take that!',
+        'Boo!', 'Get off the stage!', 'We oppose this!', 'Take that!',
+        'You lie!', 'Not in our name!', 'Show them our anger!',
+        'Feel our frustration!',
+        'Boo!', 'Get off the stage!', 'We oppose this!', 'Take that!'
       ],
     };
 

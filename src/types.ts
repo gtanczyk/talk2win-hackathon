@@ -5,6 +5,13 @@ export enum ScenarioType {
     CREATE_YOUR_OWN = 'CREATE_YOUR_OWN'
 }
 
+export enum ProjectileType {
+    STONE = 'STONE',
+    TOMATO = 'TOMATO',
+    ROTTEN_EGG = 'ROTTEN_EGG',
+    CRUMPLED_PAPER = 'CRUMPLED_PAPER'
+}
+
 export interface ScenarioConfig {
     type: ScenarioType;
     title: string;
@@ -65,7 +72,10 @@ export enum BodyLanguageExpression {
     CHEERING = 'CHEERING',
     THROWING_OBJECT = 'THROWING_OBJECT',
     HOSTILE_GESTURE = 'HOSTILE_GESTURE',
-    PROJECTILE_THROW = 'PROJECTILE_THROW'
+    PROJECTILE_THROW = 'PROJECTILE_THROW',
+    RAGE_THROW = 'RAGE_THROW',
+    FRUSTRATED_GESTURE = 'FRUSTRATED_GESTURE',
+    PLEADING = 'PLEADING'
 }
 
 export interface Agent {
