@@ -1,5 +1,5 @@
 import React from 'react';
-import { Agent as AgentType } from '../types';
+import { Agent as AgentType, ScenarioType } from '../types';
 import {
   StyledAgent,
   AgentPosition,
@@ -15,7 +15,7 @@ import {
 } from './Agent.styles';
 import { AgentSound } from './AgentSound';
 
-export const Agent: React.FC<AgentType> = ({
+export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
   x,
   y,
   mood,
@@ -23,13 +23,14 @@ export const Agent: React.FC<AgentType> = ({
   bodyLanguageExpression,
   thinkingState,
   spokenText,
+  scenarioType,
 }) => {
   return (
     <AgentPosition x={x} y={y}>
       <StyledAgent mood={mood} bodyLanguage={bodyLanguageExpression}>
         {spokenText && <SpeechBubble>{spokenText}</SpeechBubble>}
         {thinkingState && <ThinkBubble>{thinkingState}</ThinkBubble>}
-        {spokenText && <AgentSound text={spokenText} />}
+        {spokenText && <AgentSound text={spokenText} scenarioType={scenarioType} />}
 
         <Head expression={facialExpression}>
           <Eyes expression={facialExpression} />

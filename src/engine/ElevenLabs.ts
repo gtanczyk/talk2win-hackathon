@@ -5,9 +5,9 @@ const elevenlabs = new ElevenLabsClient({
   apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY as string,
 });
 
-export async function playAudio(text: string) {
+export async function playAudio(text: string, voice: string) {
   const audio = await elevenlabs.generate({
-    voice: 'HJhcnPmbQzLWICT0mdKl',
+    voice: voice,
     text: text,
     model_id: 'eleven_flash_v2_5',
   });

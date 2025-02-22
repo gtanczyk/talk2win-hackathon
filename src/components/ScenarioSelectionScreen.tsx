@@ -141,7 +141,7 @@ export const ScenarioSelectionScreen: React.FC<ScenarioSelectionScreenProps> = (
 
             <AgentsContainer>
               {generateAgentVariations(scenario.type).map((agentConfig) => (
-                <Agent key={agentConfig.id} {...agentConfig} />
+                <Agent key={agentConfig.id} {...agentConfig} scenarioType={scenario.type} />
               ))}
             </AgentsContainer>
           </ScenarioCard>

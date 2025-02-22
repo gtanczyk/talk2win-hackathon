@@ -128,7 +128,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     <Container>
       {goalProgress && <TopProgressBar progress={goalProgress} highScore={highScore} />}
       <Content>
-        <AgentStage agents={agents} />
+        <AgentStage agents={agents} scenarioType={scenarioType} />
       </Content>
 
       <GameInput isProcessingInput={isProcessingInput} onSubmit={handleSubmit} />
