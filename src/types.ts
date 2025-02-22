@@ -112,3 +112,9 @@ export interface Agent {
     targetY: number;
   };
 }
+
+export interface Message {
+  agentId: string;
+  text: string;
+  timestamp: number;
+}

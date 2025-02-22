@@ -1,7 +1,8 @@
-import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ScenarioProgress, GameState } from '../types';
+import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ScenarioProgress, GameState, Message } from '../types';
 
 const SPEECH_DURATION = 5000; // Duration in milliseconds for speech to remain visible
 const THOUGHT_DURATION = 6000; // Duration in milliseconds for thoughts to remain visible
+const MAX_MESSAGES = 50; // Maximum number of messages to store in history
 
 export class ScenarioEngine {
   private agents: Agent[] = [];
@@ -11,6 +12,7 @@ export class ScenarioEngine {
   private currentProgress: number = 0;
   private highScore: number = 0;
   private gameState: GameState = GameState.INTRO;
+  private conversationHistory: Message[] = [];
 
   constructor(scenarioType: ScenarioType) {
     this.scenarioType = scenarioType;
@@ -123,9 +125,10 @@ export class ScenarioEngine {
       }
     }
 
-    // Reset progress when starting a new game
+    // Reset progress and conversation history when starting a new game
     if (newState === GameState.INTRO) {
       this.currentProgress = 0;
+      this.conversationHistory = [];
     }
   }
 
@@ -149,6 +152,37 @@ export class ScenarioEngine {
         agent.thinkingState = '';
       }
     });
+  }
+
+  // Conversation history methods
+  public addMessage(agentId: string, text: string): void {
+    if (!text.trim()) return;
+
+    const message: Message = {
+      agentId,
+      text: text.trim(),
+      timestamp: Date.now(),
+    };
+
+    this.conversationHistory.push(message);
+
+    // Keep only the last MAX_MESSAGES messages
+    if (this.conversationHistory.length > MAX_MESSAGES) {
+      this.conversationHistory = this.conversationHistory.slice(-MAX_MESSAGES);
+    }
+  }
+
+  public getConversationHistory(): Message[] {
+    return [...this.conversationHistory];
+  }
+
+  public getRecentMessages(count: number = 10): Message[] {
+    return [...this.conversationHistory].slice(-count);
+  }
+
+  public getAgentMessages(agentId: string, count?: number): Message[] {
+    const messages = this.conversationHistory.filter(msg => msg.agentId === agentId);
+    return count ? messages.slice(-count) : messages;
   }
 
   public update(newAgents?: Agent[], newProgress?: number): void {
@@ -195,6 +229,11 @@ export class ScenarioEngine {
         const updateSpokenTime = newAgent.spokenText !== existingAgent.spokenText;
         const updateThoughtTime = newAgent.thinkingState !== existingAgent.thinkingState;
 
+        // Add new spoken text to conversation history if it changed
+        if (updateSpokenTime && newAgent.spokenText) {
+          this.addMessage(newAgent.id, newAgent.spokenText);
+        }
+
         // Update progress state
         const progressState = {
           currentProgress: this.currentProgress,
@@ -213,13 +252,20 @@ export class ScenarioEngine {
         });
       } else {
         // If it's a new agent, add it to the list with a random position and current timestamps
-        this.agents.push({
+        const newAgentWithPosition = {
           ...newAgent,
           x: Math.random() * 800 + 100, // Random x position between 100 and 900
           y: Math.random() * 400 + 50, // Random y position between 50 and 450
           lastSpokenTime: currentTime,
           lastThoughtTime: currentTime,
-        });
+        };
+
+        // Add initial spoken text to conversation history if present
+        if (newAgent.spokenText) {
+          this.addMessage(newAgent.id, newAgent.spokenText);
+        }
+
+        this.agents.push(newAgentWithPosition);
       }
     });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScenarioType, SCENARIOS, Agent, GameState } from '../types';
+import { ScenarioType, SCENARIOS, Agent, GameState, Message } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { GeminiHistory, getResponse } from '../engine/Gemini';
@@ -9,6 +9,7 @@ import { TopProgressBar } from './TopProgressBar';
 import { GameInput } from './GameInput';
 import { ScenarioIntroScreen } from './ScenarioIntroScreen';
 import { ScenarioVictoryScreen } from './ScenarioVictoryScreen';
+import { ChatPanel } from './ChatPanel';
 
 interface ScenarioScreenProps {
   scenarioType: ScenarioType;
@@ -25,6 +26,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const lastUpdateTimeRef = useRef<number>(Date.now());
   const historyRef = useRef<GeminiHistory>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.INTRO);
+  const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
 
   if (!scenario) {
     return null;
@@ -36,6 +38,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     setAgents(engineRef.current.getAgents());
     setGoalProgress(0);
     setHighScore(0);
+    setConversationHistory([]);
 
     // Start periodic updates only when in PLAYING state
     let updateInterval: NodeJS.Timeout | null = null;
@@ -45,6 +48,8 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         if (engineRef.current) {
           engineRef.current.update();
           setAgents(engineRef.current.getAgents());
+          // Update conversation history
+          setConversationHistory(engineRef.current.getConversationHistory());
         }
       }, 100); // Update every 100ms for smooth animations
     }
@@ -76,6 +81,8 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       if (response && response.agents) {
         engineRef.current.update(response.agents);
         setAgents(engineRef.current.getAgents());
+        // Update conversation history after agent updates
+        setConversationHistory(engineRef.current.getConversationHistory());
 
         // Update progress and high score
         if (response.goal) {
@@ -112,8 +119,10 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       <TopProgressBar progress={goalProgress} highScore={highScore} />
       <Content>
         <AgentStage agents={agents} scenarioType={scenarioType}/>
+        {gameState === GameState.PLAYING && (
+          <ChatPanel messages={conversationHistory} maxMessages={50} />
+        )}
       </Content>
-
       <GameInput isProcessingInput={isProcessingInput} onSubmit={handleSubmit} />
     </Container>
   );
