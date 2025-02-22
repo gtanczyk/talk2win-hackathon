@@ -12,7 +12,7 @@ export enum ProjectileType {
   CRUMPLED_PAPER = 'CRUMPLED_PAPER',
 }
 
-export interface ScenarioConfig {
+interface ScenarioConfig {
   type: ScenarioType;
   title: string;
   description: string;

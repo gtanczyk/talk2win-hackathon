@@ -62,4 +62,4 @@ export const Projectile: React.FC<ProjectileProps> = ({
     );
 };
 
-export { ProjectileType };
+;

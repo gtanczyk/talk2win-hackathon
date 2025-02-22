@@ -1,13 +1,13 @@
 import styled, { keyframes } from 'styled-components';
 import { ProjectileType } from '../types';
 
-export const projectileGlow = keyframes`
+const projectileGlow = keyframes`
     0% { filter: brightness(1) drop-shadow(0 0 2px rgba(255, 215, 0, 0.5)); }
     50% { filter: brightness(1.2) drop-shadow(0 0 4px rgba(255, 215, 0, 0.8)); }
     100% { filter: brightness(1) drop-shadow(0 0 2px rgba(255, 215, 0, 0.5)); }
 `;
 
-export const splatterAnimation = keyframes`
+const splatterAnimation = keyframes`
     0% { 
         transform: scale(1); 
         opacity: 1; 
@@ -22,7 +22,7 @@ export const splatterAnimation = keyframes`
     }
 `; 
 
-export const throwAnimation = (targetX: number, targetY: number, targetIsHost: boolean) => keyframes`
+const throwAnimation = (targetX: number, targetY: number, targetIsHost: boolean) => keyframes`
     0% {
         transform: translate(0, 0) rotate(0deg) scale(1);
         opacity: 1;
@@ -98,7 +98,7 @@ export const SplatterEffect = styled.div<{ type: ProjectileType; show: boolean }
     pointer-events: none;
 `;
 
-export const StoneProjectile = styled.div<{ targetIsHost?: boolean }>`
+const StoneProjectile = styled.div<{ targetIsHost?: boolean }>`
     width: ${props => props.targetIsHost ? '14px' : '12px'};
     height: ${props => props.targetIsHost ? '14px' : '12px'};
     background-color: #808080;
@@ -111,7 +111,7 @@ export const StoneProjectile = styled.div<{ targetIsHost?: boolean }>`
     `}
 `;
 
-export const TomatoProjectile = styled.div<{ targetIsHost?: boolean }>`
+const TomatoProjectile = styled.div<{ targetIsHost?: boolean }>`
     width: ${props => props.targetIsHost ? '16px' : '14px'};
     height: ${props => props.targetIsHost ? '16px' : '14px'};
     background-color: #ff6347;
@@ -146,7 +146,7 @@ export const TomatoProjectile = styled.div<{ targetIsHost?: boolean }>`
     `}
 `;
 
-export const RottenEggProjectile = styled.div<{ targetIsHost?: boolean }>`
+const RottenEggProjectile = styled.div<{ targetIsHost?: boolean }>`
     width: ${props => props.targetIsHost ? '15px' : '13px'};
     height: ${props => props.targetIsHost ? '18px' : '16px'};
     background-color: #f0e68c;
@@ -174,7 +174,7 @@ export const RottenEggProjectile = styled.div<{ targetIsHost?: boolean }>`
     `}
 `;
 
-export const CrumpledPaperProjectile = styled.div<{ targetIsHost?: boolean }>`
+const CrumpledPaperProjectile = styled.div<{ targetIsHost?: boolean }>`
     width: ${props => props.targetIsHost ? '18px' : '16px'};
     height: ${props => props.targetIsHost ? '18px' : '16px'};
     background-color: #fff;

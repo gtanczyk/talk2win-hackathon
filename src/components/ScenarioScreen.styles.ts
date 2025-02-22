@@ -10,20 +10,6 @@ export const Container = styled.div`
   font-family: 'Press Start 2P', cursive;
 `;
 
-export const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 2px solid #fff;
-`;
-
-export const Title = styled.h2`
-  font-size: 24px;
-  margin: 0;
-  color: #0ff;
-`;
-
 export const BackButton = styled.button`
   font-family: 'Press Start 2P', cursive;
   font-size: 16px;

@@ -3,8 +3,7 @@ import { ScenarioType, SCENARIOS, Agent } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { getResponse } from '../engine/Gemini';
-import { Container, Header, Title, BackButton, Content, PlaceholderText } from './ScenarioScreen.styles';
-import { ProgressDisplay } from './ProgressDisplay';
+import { Container, BackButton, Content, PlaceholderText } from './ScenarioScreen.styles';
 import { AgentStage } from './AgentStage';
 import { GameInput } from './GameInput';
 
@@ -18,9 +17,8 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const engineRef = useRef<ScenarioEngine | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isProcessingInput, setIsProcessingInput] = useState(false);
-  const [goalProgress, setGoalProgress] = useState(0);
+  const [, setGoalProgress] = useState(0);
   const [highScore, setHighScore] = useState(0);
-  const [isNewHighScore, setIsNewHighScore] = useState(false);
   const lastUpdateTimeRef = useRef<number>(Date.now());
 
   if (!scenario) {
@@ -37,7 +35,6 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     setAgents(engineRef.current.getAgents());
     setGoalProgress(0);
     setHighScore(0);
-    setIsNewHighScore(false);
 
     // Start periodic updates
     const updateInterval = setInterval(() => {
@@ -71,9 +68,6 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
           setGoalProgress(response.goal);
           if (response.goal > highScore) {
             setHighScore(response.goal);
-            setIsNewHighScore(true);
-            // Reset new high score flag after animation
-            setTimeout(() => setIsNewHighScore(false), 1000);
           }
         }
         lastUpdateTimeRef.current = Date.now();
@@ -87,21 +81,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   return (
     <Container>
-      <Header>
-        <Title>{scenario.title}</Title>
-        <BackButton onClick={onBack}>BACK</BackButton>
-      </Header>
-
       <Content>
-        <PlaceholderText>{scenario.description}</PlaceholderText>
-
-        <ProgressDisplay
-          goalProgress={goalProgress}
-          highScore={highScore}
-          isNewHighScore={isNewHighScore}
-          lastUpdateTime={lastUpdateTimeRef.current}
-        />
-
         <AgentStage agents={agents} />
       </Content>
 
