@@ -1,6 +1,18 @@
 import React from 'react';
 import { Agent as AgentType } from '../types';
-import { StyledAgent, Head, Eyes, Mouth, Body, Arm, Legs, Leg, SpeechBubble, ThinkBubble } from './Agent.styles';
+import {
+  StyledAgent,
+  AgentPosition,
+  Head,
+  Eyes,
+  Mouth,
+  Body,
+  Arm,
+  Legs,
+  Leg,
+  SpeechBubble,
+  ThinkBubble,
+} from './Agent.styles';
 import { AgentSound } from './AgentSound';
 
 export const Agent: React.FC<AgentType> = ({
@@ -13,25 +25,27 @@ export const Agent: React.FC<AgentType> = ({
   spokenText,
 }) => {
   return (
-    <StyledAgent x={x} y={y} mood={mood} bodyLanguage={bodyLanguageExpression}>
-      {spokenText && <SpeechBubble>{spokenText}</SpeechBubble>}
-      {thinkingState && <ThinkBubble>{thinkingState}</ThinkBubble>}
-      {spokenText && <AgentSound text={spokenText} />}
+    <AgentPosition x={x} y={y}>
+      <StyledAgent mood={mood} bodyLanguage={bodyLanguageExpression}>
+        {spokenText && <SpeechBubble>{spokenText}</SpeechBubble>}
+        {thinkingState && <ThinkBubble>{thinkingState}</ThinkBubble>}
+        {spokenText && <AgentSound text={spokenText} />}
 
-      <Head expression={facialExpression}>
-        <Eyes expression={facialExpression} />
-        <Mouth expression={facialExpression} />
-      </Head>
+        <Head expression={facialExpression}>
+          <Eyes expression={facialExpression} />
+          <Mouth expression={facialExpression} />
+        </Head>
 
-      <Body bodyLanguage={bodyLanguageExpression}>
-        <Arm side="left" bodyLanguage={bodyLanguageExpression} />
-        <Arm side="right" bodyLanguage={bodyLanguageExpression} />
-      </Body>
+        <Body bodyLanguage={bodyLanguageExpression}>
+          <Arm side="left" bodyLanguage={bodyLanguageExpression} />
+          <Arm side="right" bodyLanguage={bodyLanguageExpression} />
+        </Body>
 
-      <Legs>
-        <Leg />
-        <Leg />
-      </Legs>
-    </StyledAgent>
+        <Legs>
+          <Leg />
+          <Leg />
+        </Legs>
+      </StyledAgent>
+    </AgentPosition>
   );
 };

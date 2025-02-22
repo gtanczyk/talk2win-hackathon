@@ -2,17 +2,19 @@ import styled from 'styled-components';
 import { Mood, FacialExpression, BodyLanguageExpression } from '../types';
 
 interface StyledAgentProps {
-  x: number;
-  y: number;
   mood: Mood;
   bodyLanguage: BodyLanguageExpression;
 }
 
-export const StyledAgent = styled.div<StyledAgentProps>`
+export const AgentPosition = styled.div<{ x: number; y: number }>`
   position: absolute;
-  transform: translate(${(props) => props.x}px, ${(props) => props.y}px);
   left: 50%;
   bottom: 50%;
+  transform: translate(${(props) => props.x}px, ${(props) => props.y}px);
+`;
+
+export const StyledAgent = styled.div<StyledAgentProps>`
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
