@@ -13,7 +13,6 @@ export const Container = styled.div`
   right: 0;
   padding: 20px;
   background-color: rgba(0, 0, 0, 0.9);
-  border-top: 2px solid #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -76,7 +75,7 @@ export const MicrophoneButton = styled.button<{ isListening: boolean }>`
   font-family: 'Press Start 2P', cursive;
   font-size: 14px;
   padding: 10px;
-  background-color: ${props => (props.isListening ? '#ff0000' : '#0ff')};
+  background-color: ${(props) => (props.isListening ? '#ff0000' : '#0ff')};
   color: #000;
   border: none;
   cursor: pointer;
@@ -88,14 +87,14 @@ export const MicrophoneButton = styled.button<{ isListening: boolean }>`
   height: 40px;
   border-radius: 50%;
 
-  ${props =>
+  ${(props) =>
     props.isListening &&
     css`
       animation: ${pulse} 1.5s infinite;
     `}
 
   &:hover {
-    background-color: ${props => (props.isListening ? '#ff3333' : '#fff')};
+    background-color: ${(props) => (props.isListening ? '#ff3333' : '#fff')};
   }
 
   &:disabled {
