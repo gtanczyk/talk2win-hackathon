@@ -6,7 +6,7 @@ const pulse = keyframes`
   100% { transform: scale(1); }
 `;
 
-export const StatusBarContainer = styled.div`
+export const Container = styled.div`
   position: fixed;
   bottom: 0;
   left: 0;

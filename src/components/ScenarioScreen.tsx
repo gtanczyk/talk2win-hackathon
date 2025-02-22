@@ -11,9 +11,9 @@ import {
   Content,
   PlaceholderText,
 } from './ScenarioScreen.styles';
-import { StatusBar } from './StatusBar';
 import { ProgressDisplay } from './ProgressDisplay';
 import { AgentStage } from './AgentStage';
+import { GameInput } from './GameInput';
 
 interface ScenarioScreenProps {
   scenarioType: ScenarioType;
@@ -24,15 +24,11 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const scenario = SCENARIOS.find((s) => s.type === scenarioType);
   const engineRef = useRef<ScenarioEngine | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [userInput, setUserInput] = useState('');
   const [isProcessingInput, setIsProcessingInput] = useState(false);
   const [goalProgress, setGoalProgress] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const lastUpdateTimeRef = useRef<number>(Date.now());
-  const [isSpeechRecognitionActive, setIsSpeechRecognitionActive] = useState(false);
-  const [speechRecognitionError, setSpeechRecognitionError] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   if (!scenario) {
     return (
@@ -62,66 +58,10 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     return () => {
       clearInterval(updateInterval);
       engineRef.current?.cleanup();
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
     };
   }, [scenarioType]);
 
-  const toggleSpeechRecognition = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      setSpeechRecognitionError('Speech recognition is not supported in your browser.');
-      return;
-    }
-
-    if (isSpeechRecognitionActive) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      return;
-    }
-
-    try {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-
-      recognition.continuous = false;
-      recognition.interimResults = true;
-
-      recognition.onstart = () => {
-        setIsSpeechRecognitionActive(true);
-        setSpeechRecognitionError(null);
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join('');
-        setUserInput(transcript);
-      };
-
-      recognition.onerror = (event) => {
-        setSpeechRecognitionError(`Error: ${event.error}`);
-        setIsSpeechRecognitionActive(false);
-      };
-
-      recognition.onend = () => {
-        setIsSpeechRecognitionActive(false);
-      };
-
-      recognition.start();
-    } catch {
-      setSpeechRecognitionError('Failed to initialize speech recognition.');
-      setIsSpeechRecognitionActive(false);
-    }
-  };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUserInput(event.target.value);
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (userInput: string) => {
     if (!userInput.trim() || !engineRef.current || isProcessingInput) return;
     setIsProcessingInput(true);
 
@@ -145,21 +85,10 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         }
         lastUpdateTimeRef.current = Date.now();
       }
-
-      setUserInput('');
-      if (isSpeechRecognitionActive && recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
     } catch (error) {
       console.error('Error processing input:', error);
     } finally {
       setIsProcessingInput(false);
-    }
-  };
-
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      handleSubmit();
     }
   };
 
@@ -183,15 +112,9 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         <AgentStage agents={agents} />
       </Content>
 
-      <StatusBar
+      <GameInput
         isProcessingInput={isProcessingInput}
-        isSpeechRecognitionActive={isSpeechRecognitionActive}
-        userInput={userInput}
-        speechRecognitionError={speechRecognitionError}
-        handleInputChange={handleInputChange}
-        handleKeyPress={handleKeyPress}
-        handleSubmit={handleSubmit}
-        toggleSpeechRecognition={toggleSpeechRecognition}
+        onSubmit={handleSubmit}
       />
     </Container>
   );
