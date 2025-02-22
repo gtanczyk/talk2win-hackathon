@@ -39,7 +39,7 @@ const functionSchema: FunctionDeclaration = {
           properties: {
             id: {
               type: SchemaType.STRING,
-              description: 'Unique identifier for the agent',
+              description: 'Unique identifier for the agent, must match the ID from the conversation history',
             },
             mood: {
               type: SchemaType.STRING,
@@ -80,7 +80,7 @@ Each human can have the following properties:
 - saying something (string)
 - face expression (${Object.values(FacialExpression).join(', ')})
 - body language (${Object.values(BodyLanguageExpression).join(', ')})
-- unique id (string)
+- unique id (string, the same value as provided in the conversation history)
 
 You need to maintain the state of ai agents. The agents are reacting to user messages. User is speaking to them.
 Agents are supposed to react to those speeches. After each user message, update the state of agents, provide updates for agents which actually changed their state, skip unchanged agents.
@@ -90,6 +90,8 @@ You are a commander preparing people for battle, you must encourage them to figh
 The response should contain:
 1. A score representing the goal: % of warriors who decide to fight
 2. Updated states for agents that have changed
+3. Agent IDs should be the same as in the conversation history
+4. Always update state of some agents, add some randomness to the state updates
 
 Additional difficulty: warriors are demotivated at the beginning, and afraid`;
 
@@ -100,19 +102,6 @@ type GeminiAgent = {
   saying: string;
   face_expression: string;
   body_language: string;
-};
-
-const mapGeminiResponseToAgent = (geminiAgent: GeminiAgent): Agent => {
-  return {
-    id: geminiAgent.id,
-    x: Math.random() * 800 + 100, // Random x position between 100 and 900
-    y: Math.random() * 400 + 50, // Random y position between 50 and 450
-    mood: geminiAgent.mood as Mood,
-    facialExpression: geminiAgent.face_expression as FacialExpression,
-    bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
-    thinkingState: geminiAgent.thinking_about,
-    spokenText: geminiAgent.saying,
-  };
 };
 
 const formatAgentForHistory = (agent: Agent): GeminiAgent => {
@@ -139,8 +128,8 @@ export const getResponse = async (
     if (currentAgents?.length) {
       const agentsState = currentAgents.map(formatAgentForHistory);
       history.push({
-        role: 'assistant',
-        parts: [{ text: `Current agents state: ${JSON.stringify(agentsState, null, 2)}` }],
+        role: 'user',
+        parts: [{ text: `Current agents state: \n\n\`\`\`json\n${JSON.stringify(agentsState, null, 2)}\n\`\`\`` }],
       });
     }
 
@@ -156,6 +145,7 @@ export const getResponse = async (
         role: 'system',
         parts: [{ text: systemPrompt }],
       },
+      history,
       tools: [{ functionDeclarations: [functionSchema] }],
       toolConfig: {
         functionCallingConfig: {
@@ -174,37 +164,36 @@ export const getResponse = async (
     }
 
     const functionArgs = functionCall.args as { goal: number; agents: GeminiAgent[] };
-    
+
     // Create a map of current agents by ID for efficient lookup
-    const currentAgentsMap = new Map(
-      (currentAgents || []).map(agent => [agent.id, agent])
-    );
-    
+    const currentAgentsMap = new Map((currentAgents || []).map((agent) => [agent.id, agent]));
+
     // Process agents from API response
-    const updatedAgents = functionArgs.agents.map(geminiAgent => {
-      const currentAgent = currentAgentsMap.get(geminiAgent.id);
-      
-      if (currentAgent) {
-        // Update state properties but preserve x,y coordinates
-        return {
-          ...currentAgent,
-          mood: geminiAgent.mood as Mood,
-          facialExpression: geminiAgent.face_expression as FacialExpression,
-          bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
-          thinkingState: geminiAgent.thinking_about,
-          spokenText: geminiAgent.saying,
-        };
-      }
-      
-      // If no matching agent found, it's a new agent
-      return mapGeminiResponseToAgent(geminiAgent);
-    });
-    
+    const updatedAgents = functionArgs.agents
+      .map((geminiAgent) => {
+        const currentAgent = currentAgentsMap.get(geminiAgent.id);
+
+        if (currentAgent) {
+          // Update state properties but preserve x,y coordinates
+          return {
+            ...currentAgent,
+            mood: geminiAgent.mood as Mood,
+            facialExpression: geminiAgent.face_expression as FacialExpression,
+            bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
+            thinkingState: geminiAgent.thinking_about,
+            spokenText: geminiAgent.saying,
+          };
+        }
+
+        // If no matching agent found, it's a new agent
+        return undefined;
+      })
+      .filter((agent) => agent !== undefined) as Agent[];
+
     // Include all current agents that weren't in API response (unchanged)
-    const responseAgentIds = new Set(functionArgs.agents.map(a => a.id));
-    const unchangedAgents = Array.from(currentAgentsMap.values())
-      .filter(agent => !responseAgentIds.has(agent.id));
-    
+    const responseAgentIds = new Set(functionArgs.agents.map((a) => a.id));
+    const unchangedAgents = Array.from(currentAgentsMap.values()).filter((agent) => !responseAgentIds.has(agent.id));
+
     const agents = [...updatedAgents, ...unchangedAgents];
 
     return {

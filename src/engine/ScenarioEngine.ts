@@ -1,5 +1,8 @@
 import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression } from '../types';
 
+const SPEECH_DURATION = 2000; // Duration in milliseconds for speech to remain visible
+const THOUGHT_DURATION = 3000; // Duration in milliseconds for thoughts to remain visible
+
 export class ScenarioEngine {
   private agents: Agent[] = [];
   private scenarioType: ScenarioType;
@@ -36,6 +39,7 @@ export class ScenarioEngine {
     // Calculate position in a grid-like pattern
     const row = Math.floor(index / 5);
     const col = index % 5;
+    const currentTime = Date.now();
 
     return {
       id: `agent-${index}`,
@@ -46,6 +50,8 @@ export class ScenarioEngine {
       bodyLanguageExpression: BodyLanguageExpression.STANDING,
       thinkingState: '',
       spokenText: '',
+      lastSpokenTime: currentTime,
+      lastThoughtTime: currentTime,
     };
   }
 
@@ -53,9 +59,28 @@ export class ScenarioEngine {
     return [...this.agents];
   }
 
+  private clearExpiredText(): void {
+    const currentTime = Date.now();
+
+    this.agents.forEach((agent) => {
+      // Clear speech if it has expired
+      if (agent.spokenText && currentTime - agent.lastSpokenTime > SPEECH_DURATION) {
+        agent.spokenText = '';
+      }
+
+      // Clear thoughts if they have expired
+      if (agent.thinkingState && currentTime - agent.lastThoughtTime > THOUGHT_DURATION) {
+        agent.thinkingState = '';
+      }
+    });
+  }
+
   public update(deltaTime: number, newAgents?: Agent[]): void {
     const currentTime = Date.now();
-    
+
+    // Clear expired text first
+    this.clearExpiredText();
+
     // If new agents are provided, update the existing agents
     if (newAgents) {
       this.updateAgentsFromResponse(newAgents);
@@ -78,30 +103,46 @@ export class ScenarioEngine {
   }
 
   private updateAgentsFromResponse(newAgents: Agent[]): void {
+    const currentTime = Date.now();
+
     // Update existing agents with new states while preserving positions
     newAgents.forEach((newAgent) => {
-      const existingAgent = this.agents.find(a => a.id === newAgent.id);
+      const existingAgent = this.agents.find((a) => a.id === newAgent.id);
       if (existingAgent) {
         // Preserve the position of the existing agent
         const { x, y } = existingAgent;
-        Object.assign(existingAgent, newAgent, { x, y });
+
+        // Update timestamps only if text has changed
+        const updateSpokenTime = newAgent.spokenText !== existingAgent.spokenText;
+        const updateThoughtTime = newAgent.thinkingState !== existingAgent.thinkingState;
+
+        Object.assign(existingAgent, newAgent, {
+          x,
+          y,
+          lastSpokenTime: updateSpokenTime ? currentTime : existingAgent.lastSpokenTime,
+          lastThoughtTime: updateThoughtTime ? currentTime : existingAgent.lastThoughtTime,
+        });
       } else {
-        // If it's a new agent, add it to the list with a random position
+        // If it's a new agent, add it to the list with a random position and current timestamps
         this.agents.push({
           ...newAgent,
           x: Math.random() * 800 + 100, // Random x position between 100 and 900
-          y: Math.random() * 400 + 50,  // Random y position between 50 and 450
+          y: Math.random() * 400 + 50, // Random y position between 50 and 450
+          lastSpokenTime: currentTime,
+          lastThoughtTime: currentTime,
         });
       }
     });
 
     // Remove agents that are no longer in the new state
-    this.agents = this.agents.filter(agent => 
-      newAgents.some(newAgent => newAgent.id === agent.id)
-    );
+    this.agents = this.agents.filter((agent) => newAgents.some((newAgent) => newAgent.id === agent.id));
   }
 
   private updateAgentState(agent: Agent): void {
+    const currentTime = Date.now();
+    const previousSpokenText = agent.spokenText;
+    const previousThinkingState = agent.thinkingState;
+
     // Fallback random state updates
     const randomMood = Object.values(Mood)[Math.floor(Math.random() * Object.values(Mood).length)];
 
@@ -118,7 +159,7 @@ export class ScenarioEngine {
         const hostileActions = [
           BodyLanguageExpression.THROWING_OBJECT,
           BodyLanguageExpression.HOSTILE_GESTURE,
-          BodyLanguageExpression.PROJECTILE_THROW
+          BodyLanguageExpression.PROJECTILE_THROW,
         ];
         agent.bodyLanguageExpression = hostileActions[Math.floor(Math.random() * hostileActions.length)];
         agent.mood = Mood.ANGRY;
@@ -134,9 +175,15 @@ export class ScenarioEngine {
     if (Math.random() < 0.3) {
       agent.thinkingState = this.getRandomThought();
       agent.spokenText = '';
+      if (agent.thinkingState !== previousThinkingState) {
+        agent.lastThoughtTime = currentTime;
+      }
     } else if (Math.random() > 0.6) {
       agent.spokenText = this.getRandomSpeech();
       agent.thinkingState = '';
+      if (agent.spokenText !== previousSpokenText) {
+        agent.lastSpokenTime = currentTime;
+      }
     } else {
       agent.thinkingState = '';
       agent.spokenText = '';
@@ -151,16 +198,32 @@ export class ScenarioEngine {
   private getRandomSpeech(): string {
     const speeches: Partial<Record<ScenarioType, string[]>> = {
       [ScenarioType.WARRIORS_TO_BATTLE]: [
-        'For glory!', 'We fight!', 'To battle!', 'Victory awaits!',
-        'Take this!', 'Feel my wrath!', 'For honor!'
+        'For glory!',
+        'We fight!',
+        'To battle!',
+        'Victory awaits!',
+        'Take this!',
+        'Feel my wrath!',
+        'For honor!',
       ],
       [ScenarioType.ANNOUNCE_LAYOFFS]: [
-        'Oh no...', 'What next?', 'Need to update my resume', "Didn't expect this",
-        'This is unfair!', 'How could they?', 'We deserve better!'
+        'Oh no...',
+        'What next?',
+        'Need to update my resume',
+        "Didn't expect this",
+        'This is unfair!',
+        'How could they?',
+        'We deserve better!',
       ],
       [ScenarioType.POLITICAL_RALLY]: [
-        'Yes!', 'Good point!', 'I agree!', 'Tell us more!',
-        'Boo!', 'Get off the stage!', 'We oppose this!', 'Take that!'
+        'Yes!',
+        'Good point!',
+        'I agree!',
+        'Tell us more!',
+        'Boo!',
+        'Get off the stage!',
+        'We oppose this!',
+        'Take that!',
       ],
     };
 

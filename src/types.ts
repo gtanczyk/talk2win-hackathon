@@ -77,4 +77,6 @@ export interface Agent {
     bodyLanguageExpression: BodyLanguageExpression;
     thinkingState: string;
     spokenText: string;
+    lastSpokenTime: number;
+    lastThoughtTime: number;
 }
