@@ -32,6 +32,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   useEffect(() => {
     engineRef.current = new ScenarioEngine(scenarioType);
+    engineRef.current.setGameState(gameState);
     setAgents(engineRef.current.getAgents());
     setGoalProgress(0);
     setHighScore(0);
@@ -70,7 +71,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
     try {
       const currentAgents = engineRef.current.getAgents();
-      const response = await getResponse(historyRef.current, userInput, currentAgents);
+      const response = await getResponse(historyRef.current, userInput, scenarioType, currentAgents);
 
       if (response && response.agents) {
         engineRef.current.update(response.agents);
@@ -94,6 +95,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   const handleStartGame = () => {
     setGameState(GameState.PLAYING);
+    engineRef.current?.setGameState(GameState.PLAYING);
   };
 
   // Render different screens based on game state

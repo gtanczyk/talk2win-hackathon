@@ -6,7 +6,7 @@ import {
   GoogleGenerativeAI,
   SchemaType,
 } from '@google/generative-ai';
-import { Agent, Mood, FacialExpression, BodyLanguageExpression } from '../types';
+import { Agent, Mood, FacialExpression, BodyLanguageExpression, ScenarioType, SCENARIOS } from '../types';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -74,7 +74,22 @@ const functionSchema: FunctionDeclaration = {
   },
 };
 
-const systemPrompt = `You are responsible for maintaining state of AI agents which represent humans.
+type GeminiAgent = {
+  id: string;
+  mood: string;
+  thinking_about: string;
+  saying: string;
+  face_expression: string;
+  body_language: string;
+};
+
+const getSystemPrompt = (scenarioType: ScenarioType): string => {
+  const scenario = SCENARIOS.find((s) => s.type === scenarioType);
+  if (!scenario) {
+    throw new Error(`Invalid scenario type: ${scenarioType}`);
+  }
+
+  return `You are responsible for maintaining state of AI agents which represent humans.
 Each human can have the following properties:
 - mood (${Object.values(Mood).join(', ')})
 - thinking about something (string)
@@ -86,23 +101,13 @@ Each human can have the following properties:
 You need to maintain the state of ai agents. The agents are reacting to user messages. User is speaking to them.
 Agents are supposed to react to those speeches. After each user message, update the state of agents, provide updates for agents which actually changed their state, skip unchanged agents.
 
-You are a commander preparing people for battle, you must encourage them to fight!
-
 The response should contain:
 1. A score representing the goal: % of warriors who decide to fight
 2. Updated states for agents that have changed
 3. Agent IDs should be the same as in the conversation history
 4. Always update state of some agents, add some randomness to the state updates
 
-Additional difficulty: warriors are demotivated at the beginning, and afraid`;
-
-type GeminiAgent = {
-  id: string;
-  mood: string;
-  thinking_about: string;
-  saying: string;
-  face_expression: string;
-  body_language: string;
+${scenario.instruction}`;
 };
 
 const formatAgentForHistory = (agent: Agent): GeminiAgent => {
@@ -121,6 +126,7 @@ export type GeminiHistory = Content[];
 export const getResponse = async (
   history: GeminiHistory,
   userInput: string,
+  scenarioType: ScenarioType,
   currentAgents: Agent[],
 ): Promise<{ agents: Agent[]; goal: number }> => {
   try {
@@ -137,7 +143,7 @@ export const getResponse = async (
       generationConfig,
       systemInstruction: {
         role: 'system',
-        parts: [{ text: systemPrompt }],
+        parts: [{ text: getSystemPrompt(scenarioType) }],
       },
       history,
       tools: [{ functionDeclarations: [functionSchema] }],

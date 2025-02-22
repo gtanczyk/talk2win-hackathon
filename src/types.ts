@@ -22,6 +22,7 @@ interface ScenarioConfig {
   type: ScenarioType;
   title: string;
   description: string;
+  instruction: string;
 }
 
 export interface ScenarioProgress {
@@ -35,21 +36,25 @@ export const SCENARIOS: ScenarioConfig[] = [
     type: ScenarioType.WARRIORS_TO_BATTLE,
     title: 'Warriors to Battle',
     description: 'Encourage warriors to fight (goal: high % of warriors encouraged to fight)',
+    instruction: 'You are a commander preparing people for battle, you must encourage them to fight!',
   },
   {
     type: ScenarioType.ANNOUNCE_LAYOFFS,
     title: 'Announce Layoffs',
     description: 'Announce layoffs at company (goal: low % of people who will resign additionally because of layoffs)',
+    instruction: 'You are a manager announcing company layoffs, you need to keep morale high and minimize the number of people who will resign.',
   },
   {
     type: ScenarioType.POLITICAL_RALLY,
     title: 'Political Rally',
     description: 'Run political rally (goal: % of people becoming supporters)',
+    instruction: 'You are a politician running a rally, you need to convince as many people as possible to become your supporters.',
   },
   {
     type: ScenarioType.CREATE_YOUR_OWN,
     title: 'Create Your Own',
     description: 'Create your own scenario',
+    instruction: '',
   },
 ];
 
