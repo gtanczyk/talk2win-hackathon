@@ -30,6 +30,7 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.22.0",
+    "@types/dom-speech-recognition": "^0.0.4",
     "elevenlabs": "^1.51.0",
     "web-streams-polyfill": "^4.1.0"
   }
