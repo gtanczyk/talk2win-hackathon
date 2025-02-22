@@ -29,7 +29,7 @@ import {
   StatLabel,
   StatValue,
   MicrophoneButton,
-  ErrorMessage
+  ErrorMessage,
 } from './ScenarioScreen.styles';
 
 interface ScenarioScreenProps {
@@ -225,20 +225,22 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         </ProgressContainer>
 
         <Stage>
-          {agents.map((agent) => (
-            <React.Fragment key={agent.id}>
-              <AgentComponent {...agent} />
-              {agent.projectile && (
-                <Projectile
-                  type={agent.projectile.type}
-                  x={agent.x}
-                  y={agent.y}
-                  targetX={agent.projectile.targetX}
-                  targetY={agent.projectile.targetY}
-                />
-              )}
-            </React.Fragment>
-          ))}
+          {agents
+            .sort((l, r) => (l.y < r.y ? 1 : -1))
+            .map((agent) => (
+              <React.Fragment key={agent.id}>
+                <AgentComponent {...agent} />
+                {agent.projectile && (
+                  <Projectile
+                    type={agent.projectile.type}
+                    x={agent.x}
+                    y={agent.y}
+                    targetX={agent.projectile.targetX}
+                    targetY={agent.projectile.targetY}
+                  />
+                )}
+              </React.Fragment>
+            ))}
         </Stage>
       </Content>
 
