@@ -21,7 +21,7 @@ const floatFadeOut = keyframes`
 
 export const Container = styled.div`
   position: fixed;
-  bottom: 0;
+  bottom: 20px;
   left: 0;
   right: 0;
   padding: 20px;
@@ -30,11 +30,6 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 10px;
-`;
-
-export const StatusText = styled.span`
-  font-size: 14px;
-  color: #0ff;
 `;
 
 export const InputContainer = styled.div`
@@ -63,8 +58,6 @@ export const TextInput = styled.input`
     cursor: not-allowed;
   }
 `;
-
-
 
 export const MicrophoneButton = styled.button<{ isListening: boolean }>`
   font-family: 'Press Start 2P', cursive;
@@ -99,17 +92,11 @@ export const MicrophoneButton = styled.button<{ isListening: boolean }>`
   }
 `;
 
-export const ErrorMessage = styled.div`
-  color: #ff0000;
-  font-size: 12px;
-  margin-top: 5px;
-`;
-
 export const FloatingText = styled.div`
   position: fixed;
   top: 600px; /* Start above the container */
   left: 50%;
-  transform: translateX(-50%)  translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
   color: #fff;
   font-size: 40px;
   pointer-events: none; /* Prevent clicks on the text */

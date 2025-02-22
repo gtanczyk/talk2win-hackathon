@@ -1,13 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import {
-  Container,
-  StatusText,
-  InputContainer,
-  TextInput,
-  MicrophoneButton,
-  ErrorMessage,
-  FloatingText,
-} from './GameInput.styles';
+import { Container, InputContainer, TextInput, MicrophoneButton, FloatingText } from './GameInput.styles';
 
 interface GameInputProps {
   isProcessingInput: boolean;
@@ -17,7 +9,7 @@ interface GameInputProps {
 export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmit }) => {
   const [userInput, setUserInput] = useState('');
   const [isSpeechRecognitionActive, setIsSpeechRecognitionActive] = useState(false);
-  const [speechRecognitionError, setSpeechRecognitionError] = useState<string | null>(null);
+  const [, setSpeechRecognitionError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [submittedText, setSubmittedText] = useState('');
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +38,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
     if (submittedText) {
       const timer = setTimeout(() => {
         setSubmittedText('');
-      },6000); // Clear submittedText after 1 second
+      }, 6000); // Clear submittedText after 1 second
 
       return () => clearTimeout(timer);
     }
@@ -103,9 +95,6 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
 
   return (
     <Container>
-      <StatusText>
-        {isProcessingInput ? 'Processing...' : isSpeechRecognitionActive ? 'Listening...' : 'Ready to speak...'}
-      </StatusText>
       <InputContainer>
         <TextInput
           type="text"
@@ -123,9 +112,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
         >
           🎤
         </MicrophoneButton>
-      
       </InputContainer>
-      {speechRecognitionError && <ErrorMessage>{speechRecognitionError}</ErrorMessage>}
       {submittedText && <FloatingText>{submittedText}</FloatingText>}
     </Container>
   );
