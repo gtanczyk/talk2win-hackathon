@@ -1,0 +1,25 @@
+{
+  "rootDir": ".",
+  "lintCommand": "npm run type-check && npm run lint",
+  "ignorePaths": [
+    "dist",
+    "node_modules",
+    "package-lock.json",
+    "genaicode-debug.js",
+    "genaicode-plugin.js"
+  ],
+  "importantContext": {
+    "systemPrompt": [],
+    "files": []
+  },
+  "plugins": [],
+  "featuresEnabled": {
+    "appContext": true
+  },
+  "modelOverrides": {
+    "aiStudio": {
+      "default": "gemini-exp-1206",
+      "cheap": "gemini-2.0-flash-exp"
+    }
+  }
+}
