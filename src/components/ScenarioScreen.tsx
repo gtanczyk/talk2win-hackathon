@@ -4,6 +4,7 @@ import { ScenarioType, SCENARIOS, Agent } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { Agent as AgentComponent } from './Agent';
+import { getResponse } from '../engine/Gemini';
 
 const Container = styled.div`
   display: flex;
@@ -78,13 +79,56 @@ const StatusBar = styled.div`
   background-color: rgba(0, 0, 0, 0.9);
   border-top: 2px solid #fff;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  gap: 10px;
 `;
 
 const StatusText = styled.span`
   font-size: 14px;
   color: #0ff;
+`;
+
+const InputContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+`;
+
+const TextInput = styled.input`
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  padding: 10px;
+  background-color: #000;
+  color: #fff;
+  border: 2px solid #0ff;
+  flex: 1;
+  outline: none;
+
+  &:focus {
+    border-color: #fff;
+  }
+`;
+
+const SubmitButton = styled.button`
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  padding: 10px 20px;
+  background-color: #0ff;
+  color: #000;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #fff;
+  }
+
+  &:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+  }
 `;
 
 interface ScenarioScreenProps {
@@ -96,6 +140,8 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const scenario = SCENARIOS.find((s) => s.type === scenarioType);
   const engineRef = useRef<ScenarioEngine | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const animationFrameRef = useRef<number>();
 
   if (!scenario) {
@@ -112,23 +158,6 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     engineRef.current = new ScenarioEngine(scenarioType);
     setAgents(engineRef.current.getAgents());
 
-    // Set up the animation loop
-    let lastTime = 0;
-    const animate = (currentTime: number) => {
-      if (!lastTime) lastTime = currentTime;
-      const deltaTime = currentTime - lastTime;
-
-      if (engineRef.current) {
-        engineRef.current.update(deltaTime);
-        setAgents(engineRef.current.getAgents());
-      }
-
-      lastTime = currentTime;
-      animationFrameRef.current = requestAnimationFrame(animate);
-    };
-
-    animationFrameRef.current = requestAnimationFrame(animate);
-
     // Cleanup
     return () => {
       if (animationFrameRef.current) {
@@ -137,6 +166,36 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       engineRef.current = null;
     };
   }, [scenarioType]);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUserInput(event.target.value);
+  };
+
+  const handleSubmit = async () => {
+    if (!userInput.trim() || !engineRef.current || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const response = await getResponse(userInput);
+      
+      if (response && response.agents) {
+        engineRef.current.update(0, response.agents);
+        setAgents(engineRef.current.getAgents());
+      }
+      
+      setUserInput('');
+    } catch (error) {
+      console.error('Error processing input:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSubmit();
+    }
+  };
 
   return (
     <Container>
@@ -154,7 +213,22 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         </Stage>
       </Content>
       <StatusBar>
-        <StatusText>Ready to start speaking...</StatusText>
+        <StatusText>
+          {isLoading ? 'Processing...' : 'Ready to speak...'}
+        </StatusText>
+        <InputContainer>
+          <TextInput
+            type="text"
+            value={userInput}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your message..."
+            disabled={isLoading}
+          />
+          <SubmitButton onClick={handleSubmit} disabled={isLoading || !userInput.trim()}>
+            SEND
+          </SubmitButton>
+        </InputContainer>
       </StatusBar>
     </Container>
   );

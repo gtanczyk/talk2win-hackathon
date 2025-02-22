@@ -53,9 +53,16 @@ export class ScenarioEngine {
     return [...this.agents];
   }
 
-  public update(deltaTime: number): void {
-    // Stub implementation for the update method
+  public update(deltaTime: number, newAgents?: Agent[]): void {
     const currentTime = Date.now();
+    
+    // If new agents are provided, update the existing agents
+    if (newAgents) {
+      this.updateAgentsFromResponse(newAgents);
+      return;
+    }
+
+    // Fallback to random updates if no new agents provided
     if (currentTime - this.lastUpdateTime < 1000) {
       return; // Update only once per second
     }
@@ -70,8 +77,32 @@ export class ScenarioEngine {
     });
   }
 
+  private updateAgentsFromResponse(newAgents: Agent[]): void {
+    // Update existing agents with new states while preserving positions
+    newAgents.forEach((newAgent) => {
+      const existingAgent = this.agents.find(a => a.id === newAgent.id);
+      if (existingAgent) {
+        // Preserve the position of the existing agent
+        const { x, y } = existingAgent;
+        Object.assign(existingAgent, newAgent, { x, y });
+      } else {
+        // If it's a new agent, add it to the list with a random position
+        this.agents.push({
+          ...newAgent,
+          x: Math.random() * 800 + 100, // Random x position between 100 and 900
+          y: Math.random() * 400 + 50,  // Random y position between 50 and 450
+        });
+      }
+    });
+
+    // Remove agents that are no longer in the new state
+    this.agents = this.agents.filter(agent => 
+      newAgents.some(newAgent => newAgent.id === agent.id)
+    );
+  }
+
   private updateAgentState(agent: Agent): void {
-    // Stub implementation for agent state updates
+    // Fallback random state updates
     const randomMood = Object.values(Mood)[Math.floor(Math.random() * Object.values(Mood).length)];
 
     const randomFacialExpression =

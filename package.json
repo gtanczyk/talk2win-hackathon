@@ -22,11 +22,14 @@
   "scripts": {
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite",
+    "start": "VITE_GEMINI_API_KEY=$API_KEY vite",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx,js,jsx --report-unused-disable-directives --max-warnings 0",
     "genaicode": "genaicode --ui --allow-file-create --allow-file-delete --allow-file-move --allow-directory-create --imagen=dall-e --vision"
   },
   "author": "gtanczyk",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.22.0"
+  }
 }
