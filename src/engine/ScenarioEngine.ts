@@ -1,4 +1,4 @@
-import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ScenarioProgress } from '../types';
+import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ScenarioProgress, GameState } from '../types';
 
 const SPEECH_DURATION = 5000; // Duration in milliseconds for speech to remain visible
 const THOUGHT_DURATION = 6000; // Duration in milliseconds for thoughts to remain visible
@@ -10,6 +10,7 @@ export class ScenarioEngine {
   private lastUpdateTime: number = 0;
   private currentProgress: number = 0;
   private highScore: number = 0;
+  private gameState: GameState = GameState.INTRO;
 
   constructor(scenarioType: ScenarioType) {
     this.scenarioType = scenarioType;
@@ -40,10 +41,13 @@ export class ScenarioEngine {
   }
 
   private startPeriodicUpdates() {
-    // Update every 2 seconds
-    this.updateInterval = setInterval(() => {
-      this.update();
-    }, 2000);
+    // Update only when in PLAYING state
+    if (this.gameState === GameState.PLAYING) {
+      // Update every 2 seconds
+      this.updateInterval = setInterval(() => {
+        this.update();
+      }, 2000);
+    }
   }
 
   public cleanup() {
@@ -100,6 +104,37 @@ export class ScenarioEngine {
     };
   }
 
+  public getGameState(): GameState {
+    return this.gameState;
+  }
+
+  public setGameState(newState: GameState) {
+    const oldState = this.gameState;
+    this.gameState = newState;
+
+    // Handle state transitions
+    if (oldState !== newState) {
+      if (newState === GameState.PLAYING) {
+        // Start periodic updates when entering PLAYING state
+        this.startPeriodicUpdates();
+      } else {
+        // Clean up interval when leaving PLAYING state
+        this.cleanup();
+      }
+    }
+
+    // Reset progress when starting a new game
+    if (newState === GameState.INTRO) {
+      this.currentProgress = 0;
+    }
+  }
+
+  private checkVictoryCondition() {
+    if (this.currentProgress >= 100 && this.gameState === GameState.PLAYING) {
+      this.setGameState(GameState.VICTORY);
+    }
+  }
+
   private clearExpiredText(): void {
     const currentTime = Date.now();
 
@@ -117,6 +152,11 @@ export class ScenarioEngine {
   }
 
   public update(newAgents?: Agent[], newProgress?: number): void {
+    // Only process updates in PLAYING state
+    if (this.gameState !== GameState.PLAYING) {
+      return;
+    }
+
     const currentTime = Date.now();
 
     // Clear expired text first
@@ -133,6 +173,9 @@ export class ScenarioEngine {
           this.highScore = newProgress;
         }
         this.lastUpdateTime = currentTime;
+
+        // Check for victory condition after updating progress
+        this.checkVictoryCondition();
       }
       return;
     }

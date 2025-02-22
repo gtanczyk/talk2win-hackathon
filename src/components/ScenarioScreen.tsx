@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScenarioType, SCENARIOS, Agent } from '../types';
+import { ScenarioType, SCENARIOS, Agent, GameState } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { GeminiHistory, getResponse } from '../engine/Gemini';
-import { Container, BackButton, Content, PlaceholderText } from './ScenarioScreen.styles';
+import { Container, Content } from './ScenarioScreen.styles';
 import { AgentStage } from './AgentStage';
 import { TopProgressBar } from './TopProgressBar';
 import { GameInput } from './GameInput';
+import { ScenarioIntroScreen } from './ScenarioIntroScreen';
+import { ScenarioVictoryScreen } from './ScenarioVictoryScreen';
 
 interface ScenarioScreenProps {
   scenarioType: ScenarioType;
@@ -22,14 +24,10 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const [highScore, setHighScore] = useState(0);
   const lastUpdateTimeRef = useRef<number>(Date.now());
   const historyRef = useRef<GeminiHistory>([]);
+  const [gameState, setGameState] = useState<GameState>(GameState.INTRO);
 
   if (!scenario) {
-    return (
-      <Container>
-        <PlaceholderText>Error: Scenario not found</PlaceholderText>
-        <BackButton onClick={onBack}>BACK</BackButton>
-      </Container>
-    );
+    return null;
   }
 
   useEffect(() => {
@@ -38,20 +36,33 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     setGoalProgress(0);
     setHighScore(0);
 
-    // Start periodic updates
-    const updateInterval = setInterval(() => {
-      if (engineRef.current) {
-        engineRef.current.update();
-        setAgents(engineRef.current.getAgents());
-      }
-    }, 100); // Update every 100ms for smooth animations
+    // Start periodic updates only when in PLAYING state
+    let updateInterval: NodeJS.Timeout | null = null;
+
+    if (gameState === GameState.PLAYING) {
+      updateInterval = setInterval(() => {
+        if (engineRef.current) {
+          engineRef.current.update();
+          setAgents(engineRef.current.getAgents());
+        }
+      }, 100); // Update every 100ms for smooth animations
+    }
 
     // Cleanup
     return () => {
-      clearInterval(updateInterval);
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
       engineRef.current?.cleanup();
     };
-  }, [scenarioType]);
+  }, [scenarioType, gameState]);
+
+  // Check for victory condition
+  useEffect(() => {
+    if (goalProgress >= 100 && gameState === GameState.PLAYING) {
+      setGameState(GameState.VICTORY);
+    }
+  }, [goalProgress, gameState]);
 
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim() || !engineRef.current || isProcessingInput) return;
@@ -80,6 +91,19 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       setIsProcessingInput(false);
     }
   };
+
+  const handleStartGame = () => {
+    setGameState(GameState.PLAYING);
+  };
+
+  // Render different screens based on game state
+  if (gameState === GameState.INTRO) {
+    return <ScenarioIntroScreen scenarioType={scenarioType} onStartGame={handleStartGame} />;
+  }
+
+  if (gameState === GameState.VICTORY) {
+    return <ScenarioVictoryScreen onBack={onBack} />;
+  }
 
   return (
     <Container>

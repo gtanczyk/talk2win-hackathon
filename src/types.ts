@@ -12,6 +12,12 @@ export enum ProjectileType {
   CRUMPLED_PAPER = 'CRUMPLED_PAPER',
 }
 
+export enum GameState {
+  INTRO = 'INTRO',
+  PLAYING = 'PLAYING',
+  VICTORY = 'VICTORY',
+}
+
 interface ScenarioConfig {
   type: ScenarioType;
   title: string;
