@@ -71,8 +71,8 @@ export class ScenarioEngine {
     const row = Math.floor(index / 5);
     const col = index % 5;
     const currentTime = Date.now();
-    const x = 100 + col * 80;
-    const y = 50 + row * 60;
+    const x = (col + Math.random() - Math.random()) * 110;
+    const y = (row + Math.random() - Math.random()) * 90;
 
     return {
       id: `agent-${index}`,
@@ -85,11 +85,6 @@ export class ScenarioEngine {
       spokenText: '',
       lastSpokenTime: currentTime,
       lastThoughtTime: currentTime,
-      progressState: {
-        currentProgress: 0,
-        highScore: 0,
-        lastUpdateTime: currentTime,
-      },
     };
   }
 
@@ -181,11 +176,6 @@ export class ScenarioEngine {
           y: Math.random() * 400 + 50, // Random y position between 50 and 450
           lastSpokenTime: currentTime,
           lastThoughtTime: currentTime,
-          progressState: {
-            currentProgress: this.currentProgress,
-            highScore: this.highScore,
-            lastUpdateTime: currentTime,
-          },
         });
       }
     });

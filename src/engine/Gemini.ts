@@ -121,7 +121,7 @@ export type GeminiHistory = Content[];
 export const getResponse = async (
   history: GeminiHistory,
   userInput: string,
-  currentAgents?: Agent[],
+  currentAgents: Agent[],
 ): Promise<{ agents: Agent[]; goal: number }> => {
   try {
     // If there are current agents, add their state to the history
@@ -160,39 +160,24 @@ export const getResponse = async (
 
     const functionArgs = functionCall.args as { goal: number; agents: GeminiAgent[] };
 
-    // Create a map of current agents by ID for efficient lookup
-    const currentAgentsMap = new Map((currentAgents || []).map((agent) => [agent.id, agent]));
-
-    // Process agents from API response
-    const updatedAgents = functionArgs.agents
-      .map((geminiAgent) => {
-        const currentAgent = currentAgentsMap.get(geminiAgent.id);
-
-        if (currentAgent) {
-          // Update state properties but preserve x,y coordinates
-          return {
-            ...currentAgent,
-            mood: geminiAgent.mood as Mood,
-            facialExpression: geminiAgent.face_expression as FacialExpression,
-            bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
-            thinkingState: geminiAgent.thinking_about === '...' ? '' : geminiAgent.thinking_about,
-            spokenText: geminiAgent.saying === '...' ? '' : geminiAgent.saying,
-          };
-        }
-
-        // If no matching agent found, it's a new agent
-        return undefined;
-      })
-      .filter((agent) => agent !== undefined) as Agent[];
-
-    // Include all current agents that weren't in API response (unchanged)
-    const responseAgentIds = new Set(functionArgs.agents.map((a) => a.id));
-    const unchangedAgents = Array.from(currentAgentsMap.values()).filter((agent) => !responseAgentIds.has(agent.id));
-
-    const agents = [...updatedAgents, ...unchangedAgents];
+    const updatedAgentsMap = new Map(functionArgs.agents?.map((agent) => [agent.id, agent]));
 
     return {
-      agents,
+      agents: currentAgents.map((currentAgent) => {
+        const geminiAgent = updatedAgentsMap.get(currentAgent.id);
+        if (!geminiAgent) {
+          return currentAgent;
+        }
+
+        return {
+          ...currentAgent,
+          mood: geminiAgent.mood as Mood,
+          facialExpression: geminiAgent.face_expression as FacialExpression,
+          bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
+          thinkingState: geminiAgent.thinking_about === '...' ? '' : geminiAgent.thinking_about,
+          spokenText: geminiAgent.saying === '...' ? '' : geminiAgent.saying,
+        };
+      }),
       goal: functionArgs.goal,
     };
   } catch (error) {

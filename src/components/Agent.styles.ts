@@ -473,7 +473,6 @@ export const SpeechBubble = styled.div`
   max-width: 150px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 
   &::after {
     content: '';
