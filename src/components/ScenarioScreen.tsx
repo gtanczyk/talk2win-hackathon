@@ -176,7 +176,11 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
     setIsLoading(true);
     try {
-      const response = await getResponse(userInput);
+      // Get current agents state
+      const currentAgents = engineRef.current.getAgents();
+      
+      // Pass current agents to getResponse
+      const response = await getResponse(userInput, currentAgents);
       
       if (response && response.agents) {
         engineRef.current.update(0, response.agents);

@@ -82,8 +82,8 @@ Each human can have the following properties:
 - body language (${Object.values(BodyLanguageExpression).join(', ')})
 - unique id (string)
 
-You need to maintain 50 ai agents. The agents are reacting to user messages. User is speaking to them.
-Agents are supposed to react to those speeches. After each user message, update the state of agents.
+You need to maintain the state of ai agents. The agents are reacting to user messages. User is speaking to them.
+Agents are supposed to react to those speeches. After each user message, update the state of agents, provide updates for agents which actually changed their state, skip unchanged agents.
 
 You are a commander preparing people for battle, you must encourage them to fight!
 
@@ -115,8 +115,41 @@ const mapGeminiResponseToAgent = (geminiAgent: GeminiAgent): Agent => {
   };
 };
 
-export const getResponse = async (userInput: string): Promise<{ agents: Agent[]; goal: number }> => {
+const formatAgentForHistory = (agent: Agent): GeminiAgent => {
+  return {
+    id: agent.id,
+    mood: agent.mood,
+    thinking_about: agent.thinkingState,
+    saying: agent.spokenText,
+    face_expression: agent.facialExpression,
+    body_language: agent.bodyLanguageExpression,
+  };
+};
+
+export const getResponse = async (
+  userInput: string,
+  currentAgents?: Agent[],
+): Promise<{ agents: Agent[]; goal: number }> => {
   try {
+    const history = [];
+
+    // Add system prompt as the first message
+
+    // If there are current agents, add their state to the history
+    if (currentAgents?.length) {
+      const agentsState = currentAgents.map(formatAgentForHistory);
+      history.push({
+        role: 'assistant',
+        parts: [{ text: `Current agents state: ${JSON.stringify(agentsState, null, 2)}` }],
+      });
+    }
+
+    // Add user input as the last message
+    history.push({
+      role: 'user',
+      parts: [{ text: userInput }],
+    });
+
     const chat = model.startChat({
       generationConfig,
       systemInstruction: {
@@ -130,15 +163,9 @@ export const getResponse = async (userInput: string): Promise<{ agents: Agent[];
           allowedFunctionNames: ['updateAgentsState'],
         },
       },
-      history: [],
     });
 
-    // Add the system prompt and function schema
-    await chat.sendMessage(systemPrompt);
-
-    // Send user input and expect a function call
     const result = await chat.sendMessage(userInput);
-
     const response = result.response;
     const functionCall = response.functionCalls()?.[0];
 
@@ -147,7 +174,38 @@ export const getResponse = async (userInput: string): Promise<{ agents: Agent[];
     }
 
     const functionArgs = functionCall.args as { goal: number; agents: GeminiAgent[] };
-    const agents = functionArgs.agents.map(mapGeminiResponseToAgent);
+    
+    // Create a map of current agents by ID for efficient lookup
+    const currentAgentsMap = new Map(
+      (currentAgents || []).map(agent => [agent.id, agent])
+    );
+    
+    // Process agents from API response
+    const updatedAgents = functionArgs.agents.map(geminiAgent => {
+      const currentAgent = currentAgentsMap.get(geminiAgent.id);
+      
+      if (currentAgent) {
+        // Update state properties but preserve x,y coordinates
+        return {
+          ...currentAgent,
+          mood: geminiAgent.mood as Mood,
+          facialExpression: geminiAgent.face_expression as FacialExpression,
+          bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
+          thinkingState: geminiAgent.thinking_about,
+          spokenText: geminiAgent.saying,
+        };
+      }
+      
+      // If no matching agent found, it's a new agent
+      return mapGeminiResponseToAgent(geminiAgent);
+    });
+    
+    // Include all current agents that weren't in API response (unchanged)
+    const responseAgentIds = new Set(functionArgs.agents.map(a => a.id));
+    const unchangedAgents = Array.from(currentAgentsMap.values())
+      .filter(agent => !responseAgentIds.has(agent.id));
+    
+    const agents = [...updatedAgents, ...unchangedAgents];
 
     return {
       agents,
