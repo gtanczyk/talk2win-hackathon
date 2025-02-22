@@ -102,7 +102,7 @@ You need to maintain the state of ai agents. The agents are reacting to user mes
 Agents are supposed to react to those speeches. After each user message, update the state of agents, provide updates for agents which actually changed their state, skip unchanged agents.
 
 The response should contain:
-1. A score representing the goal: % of warriors who decide to fight
+1. A score representing the goal: 0% means game over, 100% means victory
 2. Updated states for agents that have changed
 3. Agent IDs should be the same as in the conversation history
 4. Always update state of some agents, add some randomness to the state updates

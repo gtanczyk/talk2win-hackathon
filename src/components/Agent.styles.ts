@@ -461,7 +461,7 @@ export const Leg = styled.div`
 
 export const SpeechBubble = styled.div`
   position: absolute;
-  top: -20px;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   background-color: white;
@@ -471,7 +471,6 @@ export const SpeechBubble = styled.div`
   padding: 5px 10px;
   font-size: 12px;
   max-width: 150px;
-  white-space: nowrap;
   overflow: hidden;
 
   &::after {
@@ -494,7 +493,6 @@ export const ThinkBubble = styled.div`
   border-radius: 10px;
   padding: 5px 10px;
   font-size: 10px;
-  max-width: 100px;
   font-style: italic;
   color: #666;
 `;

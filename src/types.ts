@@ -16,6 +16,7 @@ export enum GameState {
   INTRO = 'INTRO',
   PLAYING = 'PLAYING',
   VICTORY = 'VICTORY',
+  GAME_OVER = 'GAME_OVER',
 }
 
 interface ScenarioConfig {
@@ -35,20 +36,116 @@ export const SCENARIOS: ScenarioConfig[] = [
   {
     type: ScenarioType.WARRIORS_TO_BATTLE,
     title: 'Warriors to Battle',
-    description: 'Encourage warriors to fight (goal: high % of warriors encouraged to fight)',
-    instruction: 'You are a commander preparing people for battle, you must encourage them to fight!',
+    description: 'Encourage warriors to fight',
+    instruction: `Update agent states based on how effectively the player motivates warriors for battle.
+
+Agent State Update Rules:
+- When player mentions honor/duty: Increase chance of HAPPY mood, SMILE expression
+- When player references protection of families: Some agents switch to EXCITED mood with CHEERING
+- When player uses aggressive tone: Mix of EXCITED and SCARED responses
+- When player shows doubt: Increase chance of SCARED mood, COWERING stance
+- When player mentions victory: HAPPY mood + CHEERING combinations
+
+Response Patterns:
+- Brave agents (HAPPY/EXCITED) should say confident phrases
+- Scared agents should express doubts through thinkingState
+- Neutral agents should show contemplation through facial expressions
+- Gradually transition agents from SCARED to EXCITED with consistent motivation
+
+Goal Calculation:
+- Count agents in HAPPY or EXCITED mood as "ready to fight"
+- Subtract agents in SCARED or SAD mood
+- Higher score for CHEERING agents vs just HAPPY ones
+- Penalize score for each COWERING agent
+
+State Transition Triggers:
+- Mentions of glory/victory → NEUTRAL to EXCITED
+- References to danger → chance of SCARED
+- Words of encouragement → gradual mood improvement
+- Silence or hesitation → slow mood deterioration
+
+Remember: Update multiple agents per interaction, but maintain some variety in responses.`,
   },
   {
     type: ScenarioType.ANNOUNCE_LAYOFFS,
     title: 'Announce Layoffs',
-    description: 'Announce layoffs at company (goal: low % of people who will resign additionally because of layoffs)',
-    instruction: 'You are a manager announcing company layoffs, you need to keep morale high and minimize the number of people who will resign.',
+    description: 'Announce layoffs at company',
+    instruction: `Update agent states based on how the player handles the layoff announcement.
+
+Agent State Update Rules:
+- When player shows transparency: Convert CONFUSED to NEUTRAL (+10% per agent)
+- When player offers concrete support: Transform SAD to NEUTRAL (+15% per agent)
+- When player provides clear timeline: Move SCARED to NEUTRAL (+10% per agent)
+- When player demonstrates empathy: Prevent ANGRY transitions (+5% per prevented)
+- When player outlines future vision: Chance to achieve HAPPY state (+20% per agent)
+
+Response Patterns:
+- Initially set 30% of agents to CONFUSED/SCARED
+- Reassured agents should express understanding via spokenText
+- Supported agents should show positive body language
+- Create chain reactions of mood improvements among groups
+
+Goal Calculation (100% possible):
+Base Score (40%):
+- Start at 40% baseline for addressing the situation
+- Lose 5% for each agent remaining in CONFUSED state
+- Lose 10% for each agent in ANGRY state
+
+Stability Bonus (30%):
+- +10% for each group of agents moved from negative to NEUTRAL
+- +5% for maintaining NEUTRAL or better states over multiple interactions
+- +15% for achieving any HAPPY states
+
+Communication Bonus (30%):
+- +10% for clear timeline communication (measured by reduced CONFUSED states)
+- +10% for support system explanation (measured by reduced SCARED states)
+- +10% for future opportunities discussion (measured by any HAPPY transitions)
+
+State Transition Guidelines:
+- CONFUSED → NEUTRAL: Through clear, specific information
+- SCARED → NEUTRAL: Through support system explanations
+- SAD → NEUTRAL: Through empathy and future opportunities
+- NEUTRAL → HAPPY: Through positive future vision
+- Prevent NEUTRAL → ANGRY: Through proactive support
+
+Remember: 
+- Focus on moving agents to NEUTRAL or better states
+- Maintain achieved positive states through consistent communication
+- Create positive chain reactions among agent groups
+- Perfect score (100%) requires addressing all aspects: clarity, support, and future vision`,
   },
   {
     type: ScenarioType.POLITICAL_RALLY,
     title: 'Political Rally',
-    description: 'Run political rally (goal: % of people becoming supporters)',
-    instruction: 'You are a politician running a rally, you need to convince as many people as possible to become your supporters.',
+    description: 'Run political rally, gain supporters',
+    instruction: `Update agent states based on how the player delivers their political message.
+
+Agent State Update Rules:
+- When player addresses specific issues: Increase INTERESTED agents
+- When player makes promises: Mix of EXCITED and SKEPTICAL responses
+- When player attacks opponents: Some become ANGRY, others EXCITED
+- When player shares concrete plans: Gradual mood improvements
+- When player avoids questions: Increase CONFUSED and ANGRY states
+
+Response Patterns:
+- Supportive agents use CHEERING and positive phrases
+- Skeptical agents show ARMS_CROSSED or SQUINTING
+- Hostile agents may use THROWING_OBJECT
+- Group dynamics should show crowd momentum
+
+Goal Calculation:
+- Count HAPPY and EXCITED agents as "supporters"
+- Subtract ANGRY and CONFUSED agents
+- Higher score for actively CHEERING supporters
+- Penalize for HOSTILE_GESTURE and projectile throws
+
+State Transition Triggers:
+- Concrete solutions → NEUTRAL to HAPPY
+- Vague statements → increase CONFUSED
+- Popular proposals → chain reaction of positive states
+- Controversial statements → polarized responses
+
+Remember: Create dynamic crowd reactions with mixed responses to complex topics.`,
   },
   {
     type: ScenarioType.CREATE_YOUR_OWN,
@@ -104,8 +201,6 @@ export interface Agent {
   bodyLanguageExpression: BodyLanguageExpression;
   thinkingState: string;
   spokenText: string;
-  lastSpokenTime: number;
-  lastThoughtTime: number;
   projectile?: {
     type: ProjectileType;
     targetX: number;

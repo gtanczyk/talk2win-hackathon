@@ -9,6 +9,7 @@ import { TopProgressBar } from './TopProgressBar';
 import { GameInput } from './GameInput';
 import { ScenarioIntroScreen } from './ScenarioIntroScreen';
 import { ScenarioVictoryScreen } from './ScenarioVictoryScreen';
+import { GameOverScreen } from './GameOverScreen';
 
 interface ScenarioScreenProps {
   scenarioType: ScenarioType;
@@ -20,7 +21,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const engineRef = useRef<ScenarioEngine | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isProcessingInput, setIsProcessingInput] = useState(false);
-  const [goalProgress, setGoalProgress] = useState(0);
+  const [goalProgress, setGoalProgress] = useState<number | undefined>(undefined);
   const [highScore, setHighScore] = useState(0);
   const lastUpdateTimeRef = useRef<number>(Date.now());
   const historyRef = useRef<GeminiHistory>([]);
@@ -34,7 +35,6 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     engineRef.current = new ScenarioEngine(scenarioType);
     engineRef.current.setGameState(gameState);
     setAgents(engineRef.current.getAgents());
-    setGoalProgress(0);
     setHighScore(0);
 
     // Start periodic updates only when in PLAYING state
@@ -58,10 +58,14 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     };
   }, [scenarioType, gameState]);
 
-  // Check for victory condition
+  // Check for victory or game over conditions
   useEffect(() => {
-    if (goalProgress >= 100 && gameState === GameState.PLAYING) {
-      setGameState(GameState.VICTORY);
+    if (gameState === GameState.PLAYING) {
+      if (goalProgress! >= 100) {
+        setGameState(GameState.VICTORY);
+      } else if (goalProgress! <= 0) {
+        setGameState(GameState.GAME_OVER);
+      }
     }
   }, [goalProgress, gameState]);
 
@@ -78,7 +82,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         setAgents(engineRef.current.getAgents());
 
         // Update progress and high score
-        if (response.goal) {
+        if (response.goal >= 0) {
           setGoalProgress(response.goal);
           if (response.goal > highScore) {
             setHighScore(response.goal);
@@ -95,7 +99,16 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   const handleStartGame = () => {
     setGameState(GameState.PLAYING);
-    engineRef.current?.setGameState(GameState.PLAYING);
+  };
+
+  const handleRetry = () => {
+    historyRef.current = []; // Clear conversation history
+    setGameState(GameState.PLAYING); // Reset to playing state
+    if (engineRef.current) {
+      engineRef.current = new ScenarioEngine(scenarioType); // Reset engine
+      setAgents(engineRef.current.getAgents());
+      setGoalProgress(undefined); // Reset to 50%
+    }
   };
 
   // Render different screens based on game state
@@ -107,9 +120,13 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     return <ScenarioVictoryScreen onBack={onBack} />;
   }
 
+  if (gameState === GameState.GAME_OVER) {
+    return <GameOverScreen onRetry={handleRetry} onBack={onBack} />;
+  }
+
   return (
     <Container>
-      <TopProgressBar progress={goalProgress} highScore={highScore} />
+      {goalProgress && <TopProgressBar progress={goalProgress} highScore={highScore} />}
       <Content>
         <AgentStage agents={agents} />
       </Content>
