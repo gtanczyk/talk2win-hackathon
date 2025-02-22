@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import styled, { css, keyframes } from 'styled-components';
 import { ScenarioType, SCENARIOS, Agent } from '../types';
-import styled, { keyframes } from 'styled-components';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { Agent as AgentComponent } from './Agent';
@@ -15,6 +15,12 @@ const Container = styled.div`
   background-color: #000;
   color: #fff;
   font-family: 'Press Start 2P', cursive;
+`;
+
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 `;
 
 const Header = styled.div`
@@ -110,6 +116,11 @@ const TextInput = styled.input`
   &:focus {
     border-color: #fff;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const SubmitButton = styled.button`
@@ -154,7 +165,7 @@ const ProgressContainer = styled.div`
   border: 2px solid #0ff;
   border-radius: 4px;
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -180,12 +191,12 @@ const ProgressBarOuter = styled.div`
 `;
 
 const ProgressBarInner = styled.div<{ progress: number; isHighScore: boolean }>`
-  width: ${props => Math.min(Math.max(props.progress, 0), 100)}%;
+  width: ${(props) => Math.min(Math.max(props.progress, 0), 100)}%;
   height: 100%;
-  background-color: ${props => props.isHighScore ? '#0f0' : '#0ff'};
+  background-color: ${(props) => (props.isHighScore ? '#0f0' : '#0ff')};
   transition: width 0.5s ease-out;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -193,12 +204,7 @@ const ProgressBarInner = styled.div<{ progress: number; isHighScore: boolean }>`
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
     animation: ${progressPulse} 2s infinite;
   }
 `;
@@ -227,14 +233,14 @@ const ScoreDisplay = styled.div`
 `;
 
 const ScoreText = styled.span<{ isHighScore?: boolean; isNew?: boolean }>`
-  color: ${props => props.isHighScore ? '#0f0' : '#0ff'};
-  text-shadow: ${props => props.isHighScore ? '0 0 5px #0f0' : 'none'};
-  font-size: ${props => props.isHighScore ? '14px' : '12px'};
-  font-weight: ${props => props.isHighScore ? 'bold' : 'normal'};
-  animation: ${props => props.isNew ? scoreFlash : 'none'} 0.5s ease-out;
-  
+  color: ${(props) => (props.isHighScore ? '#0f0' : '#0ff')};
+  text-shadow: ${(props) => (props.isHighScore ? '0 0 5px #0f0' : 'none')};
+  font-size: ${(props) => (props.isHighScore ? '14px' : '12px')};
+  font-weight: ${(props) => (props.isHighScore ? 'bold' : 'normal')};
+  animation: ${(props) => (props.isNew ? scoreFlash : 'none')} 0.5s ease-out;
+
   &::before {
-    content: ${props => props.isHighScore ? '"★ "' : '""'};
+    content: ${(props) => (props.isHighScore ? '"★ "' : '""')};
   }
 `;
 
@@ -260,8 +266,47 @@ const StatLabel = styled.span`
 `;
 
 const StatValue = styled.span<{ highlight?: boolean }>`
-  color: ${props => props.highlight ? '#0f0' : '#fff'};
-  font-weight: ${props => props.highlight ? 'bold' : 'normal'};
+  color: ${(props) => (props.highlight ? '#0f0' : '#fff')};
+  font-weight: ${(props) => (props.highlight ? 'bold' : 'normal')};
+`;
+
+const MicrophoneButton = styled.button<{ isListening: boolean }>`
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  padding: 10px;
+  background-color: ${(props) => (props.isListening ? '#ff0000' : '#0ff')};
+  color: #000;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  ${(props) =>
+    props.isListening &&
+    css`
+      animation: ${pulse} 1.5s infinite;
+    `}
+
+  &:hover {
+    background-color: ${(props) => (props.isListening ? '#ff3333' : '#fff')};
+  }
+
+  &:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+    animation: none;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: #ff0000;
+  font-size: 12px;
+  margin-top: 5px;
 `;
 
 interface ScenarioScreenProps {
@@ -279,6 +324,9 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const [highScore, setHighScore] = useState(0);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const lastUpdateTimeRef = useRef<number>(Date.now());
+  const [isSpeechRecognitionActive, setIsSpeechRecognitionActive] = useState(false);
+  const [speechRecognitionError, setSpeechRecognitionError] = useState<string | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   if (!scenario) {
     return (
@@ -308,8 +356,60 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     return () => {
       clearInterval(updateInterval);
       engineRef.current?.cleanup();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
     };
   }, [scenarioType]);
+
+  const toggleSpeechRecognition = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      setSpeechRecognitionError('Speech recognition is not supported in your browser.');
+      return;
+    }
+
+    if (isSpeechRecognitionActive) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      return;
+    }
+
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsSpeechRecognitionActive(true);
+        setSpeechRecognitionError(null);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join('');
+        setUserInput(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        setSpeechRecognitionError(`Error: ${event.error}`);
+        setIsSpeechRecognitionActive(false);
+      };
+
+      recognition.onend = () => {
+        setIsSpeechRecognitionActive(false);
+      };
+
+      recognition.start();
+    } catch {
+      setSpeechRecognitionError('Failed to initialize speech recognition.');
+      setIsSpeechRecognitionActive(false);
+    }
+  };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserInput(event.target.value);
@@ -318,6 +418,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const handleSubmit = async () => {
     if (!userInput.trim() || !engineRef.current || isProcessingInput) return;
     setIsProcessingInput(true);
+
     try {
       const currentAgents = engineRef.current.getAgents();
       const response = await getResponse(userInput, currentAgents);
@@ -325,7 +426,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       if (response && response.agents) {
         engineRef.current.update(response.agents);
         setAgents(engineRef.current.getAgents());
-        
+
         // Update progress and high score
         if (response.goal) {
           setGoalProgress(response.goal);
@@ -340,6 +441,9 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       }
 
       setUserInput('');
+      if (isSpeechRecognitionActive && recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
     } catch (error) {
       console.error('Error processing input:', error);
     } finally {
@@ -367,16 +471,13 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
       <Content>
         <PlaceholderText>{scenario.description}</PlaceholderText>
-        
+
         <ProgressContainer>
           <ProgressBarOuter>
             <ProgressText>{Math.round(goalProgress)}%</ProgressText>
-            <ProgressBarInner 
-              progress={goalProgress} 
-              isHighScore={goalProgress >= highScore} 
-            />
+            <ProgressBarInner progress={goalProgress} isHighScore={goalProgress >= highScore} />
           </ProgressBarOuter>
-          
+
           <ScoreDisplay>
             <ScoreText>Current: {Math.round(goalProgress)}%</ScoreText>
             <ScoreText isHighScore isNew={isNewHighScore}>
@@ -392,7 +493,9 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
             <StatRow>
               <StatLabel>Progress Rate:</StatLabel>
               <StatValue highlight={goalProgress > 0}>
-                {goalProgress > 0 ? `+${(goalProgress / Math.max(1, (Date.now() - lastUpdateTimeRef.current) / 1000)).toFixed(1)}%/s` : 'N/A'}
+                {goalProgress > 0
+                  ? `+${(goalProgress / Math.max(1, (Date.now() - lastUpdateTimeRef.current) / 1000)).toFixed(1)}%/s`
+                  : 'N/A'}
               </StatValue>
             </StatRow>
           </ProgressStats>
@@ -417,19 +520,31 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       </Content>
 
       <StatusBar>
-        <StatusText>{isProcessingInput ? 'Processing...' : 'Ready to speak...'}</StatusText>
+        <StatusText>
+          {isProcessingInput ? 'Processing...' : isSpeechRecognitionActive ? 'Listening...' : 'Ready to speak...'}
+        </StatusText>
         <InputContainer>
           <TextInput
             type="text"
             value={userInput}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            disabled={isProcessingInput}
+            disabled={isProcessingInput || isSpeechRecognitionActive}
+            placeholder={isSpeechRecognitionActive ? 'Listening...' : 'Type your message...'}
           />
+          <MicrophoneButton
+            onClick={toggleSpeechRecognition}
+            disabled={isProcessingInput}
+            isListening={isSpeechRecognitionActive}
+            title={isSpeechRecognitionActive ? 'Stop listening' : 'Start listening'}
+          >
+            🎤
+          </MicrophoneButton>
           <SubmitButton onClick={handleSubmit} disabled={isProcessingInput || !userInput.trim()}>
             SEND
           </SubmitButton>
         </InputContainer>
+        {speechRecognitionError && <ErrorMessage>{speechRecognitionError}</ErrorMessage>}
       </StatusBar>
     </Container>
   );

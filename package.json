@@ -30,6 +30,7 @@
   "author": "gtanczyk",
   "license": "ISC",
   "dependencies": {
-    "@google/generative-ai": "^0.22.0"
+    "@google/generative-ai": "^0.22.0",
+    "@types/dom-speech-recognition": "^0.0.4"
   }
 }
