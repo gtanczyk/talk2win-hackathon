@@ -24,6 +24,19 @@ export class ScenarioEngine {
     for (let i = 0; i < count; i++) {
       this.agents.push(this.createAgent(i));
     }
+
+    // Center agents horizontally
+    const minX = Math.min(...this.agents.map((agent) => agent.x));
+    const maxX = Math.max(...this.agents.map((agent) => agent.x));
+    const minY = Math.min(...this.agents.map((agent) => agent.y));
+    const maxY = Math.max(...this.agents.map((agent) => agent.y));
+    const offsetX = (maxX - minX) / 2;
+    const offsetY = (maxY - minY) / 2;
+
+    this.agents.forEach((agent) => {
+      agent.x = agent.x - minX - offsetX;
+      agent.y = agent.y - minY - offsetY;
+    });
   }
 
   private startPeriodicUpdates() {
@@ -75,8 +88,8 @@ export class ScenarioEngine {
       progressState: {
         currentProgress: 0,
         highScore: 0,
-        lastUpdateTime: currentTime
-      }
+        lastUpdateTime: currentTime,
+      },
     };
   }
 
@@ -88,7 +101,7 @@ export class ScenarioEngine {
     return {
       currentProgress: this.currentProgress,
       highScore: this.highScore,
-      lastUpdateTime: this.lastUpdateTime
+      lastUpdateTime: this.lastUpdateTime,
     };
   }
 
@@ -117,7 +130,7 @@ export class ScenarioEngine {
     // If new agents are provided, update the existing agents
     if (newAgents) {
       this.updateAgentsFromResponse(newAgents);
-      
+
       // Update progress if provided
       if (typeof newProgress === 'number') {
         this.currentProgress = newProgress;
@@ -148,7 +161,7 @@ export class ScenarioEngine {
         const progressState = {
           currentProgress: this.currentProgress,
           highScore: this.highScore,
-          lastUpdateTime: currentTime
+          lastUpdateTime: currentTime,
         };
 
         // Update the existing agent with new state
@@ -158,7 +171,7 @@ export class ScenarioEngine {
           projectile,
           lastSpokenTime: updateSpokenTime ? currentTime : existingAgent.lastSpokenTime,
           lastThoughtTime: updateThoughtTime ? currentTime : existingAgent.lastThoughtTime,
-          progressState
+          progressState,
         });
       } else {
         // If it's a new agent, add it to the list with a random position and current timestamps
@@ -171,8 +184,8 @@ export class ScenarioEngine {
           progressState: {
             currentProgress: this.currentProgress,
             highScore: this.highScore,
-            lastUpdateTime: currentTime
-          }
+            lastUpdateTime: currentTime,
+          },
         });
       }
     });

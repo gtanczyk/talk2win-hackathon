@@ -16,7 +16,7 @@ export const Agent: React.FC<AgentType> = ({
     <StyledAgent x={x} y={y} mood={mood} bodyLanguage={bodyLanguageExpression}>
       {spokenText && <SpeechBubble>{spokenText}</SpeechBubble>}
       {thinkingState && <ThinkBubble>{thinkingState}</ThinkBubble>}
-      <AgentSound text={spokenText} />
+      {spokenText && <AgentSound text={spokenText} />}
 
       <Head expression={facialExpression}>
         <Eyes expression={facialExpression} />
