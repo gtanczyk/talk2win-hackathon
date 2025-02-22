@@ -5,6 +5,7 @@ import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { getResponse } from '../engine/Gemini';
 import { Container, BackButton, Content, PlaceholderText } from './ScenarioScreen.styles';
 import { AgentStage } from './AgentStage';
+import { TopProgressBar } from './TopProgressBar';
 import { GameInput } from './GameInput';
 
 interface ScenarioScreenProps {
@@ -17,7 +18,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const engineRef = useRef<ScenarioEngine | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isProcessingInput, setIsProcessingInput] = useState(false);
-  const [, setGoalProgress] = useState(0);
+  const [goalProgress, setGoalProgress] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const lastUpdateTimeRef = useRef<number>(Date.now());
 
@@ -81,6 +82,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   return (
     <Container>
+      <TopProgressBar progress={goalProgress} highScore={highScore} />
       <Content>
         <AgentStage agents={agents} />
       </Content>
