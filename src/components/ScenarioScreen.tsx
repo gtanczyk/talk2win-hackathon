@@ -3,14 +3,7 @@ import { ScenarioType, SCENARIOS, Agent } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { getResponse } from '../engine/Gemini';
-import {
-  Container,
-  Header,
-  Title,
-  BackButton,
-  Content,
-  PlaceholderText,
-} from './ScenarioScreen.styles';
+import { Container, Header, Title, BackButton, Content, PlaceholderText } from './ScenarioScreen.styles';
 import { ProgressDisplay } from './ProgressDisplay';
 import { AgentStage } from './AgentStage';
 import { GameInput } from './GameInput';
@@ -112,10 +105,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         <AgentStage agents={agents} />
       </Content>
 
-      <GameInput
-        isProcessingInput={isProcessingInput}
-        onSubmit={handleSubmit}
-      />
+      <GameInput isProcessingInput={isProcessingInput} onSubmit={handleSubmit} />
     </Container>
   );
 };

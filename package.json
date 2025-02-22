@@ -22,7 +22,7 @@
   "scripts": {
     "build": "vite build",
     "preview": "vite preview",
-    "start": "VITE_GEMINI_API_KEY=$API_KEY vite",
+    "start": "VITE_GEMINI_API_KEY=$API_KEY VITE_ELEVENLABS_API_KEY=$ELEVENLABS_API_KEY vite",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx,js,jsx --report-unused-disable-directives --max-warnings 0",
     "genaicode": "genaicode --ui --allow-file-create --allow-file-delete --allow-file-move --allow-directory-create --imagen=dall-e --vision"
@@ -31,6 +31,8 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.22.0",
-    "@types/dom-speech-recognition": "^0.0.4"
+    "@types/dom-speech-recognition": "^0.0.4",
+    "elevenlabs": "^1.51.0",
+    "web-streams-polyfill": "^4.1.0"
   }
 }
