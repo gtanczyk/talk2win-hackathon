@@ -150,8 +150,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const engineRef = useRef<ScenarioEngine | null>(null);
   const [agents, setAgents] = useState<AgentWithProjectile[]>([]);
   const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const animationFrameRef = useRef<number>();
+  const [isProcessingInput, setIsProcessingInput] = useState(false);
 
   if (!scenario) {
     return (
@@ -167,12 +166,18 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     engineRef.current = new ScenarioEngine(scenarioType);
     setAgents(engineRef.current.getAgents());
 
+    // Start periodic updates
+    const updateInterval = setInterval(() => {
+      if (engineRef.current) {
+        engineRef.current.update();
+        setAgents(engineRef.current.getAgents());
+      }
+    }, 100); // Update every 100ms for smooth animations
+
     // Cleanup
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      engineRef.current = null;
+      clearInterval(updateInterval);
+      engineRef.current?.cleanup();
     };
   }, [scenarioType]);
 
@@ -181,26 +186,25 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   };
 
   const handleSubmit = async () => {
-    if (!userInput.trim() || !engineRef.current || isLoading) return;
-
-    setIsLoading(true);
+    if (!userInput.trim() || !engineRef.current || isProcessingInput) return;
+    setIsProcessingInput(true);
     try {
       // Get current agents state
       const currentAgents = engineRef.current.getAgents();
-      
+
       // Pass current agents to getResponse
       const response = await getResponse(userInput, currentAgents);
-      
+
       if (response && response.agents) {
-        engineRef.current.update(0, response.agents);
+        engineRef.current.update(response.agents);
         setAgents(engineRef.current.getAgents());
       }
-      
+
       setUserInput('');
     } catch (error) {
       console.error('Error processing input:', error);
     } finally {
-      setIsLoading(false);
+      setIsProcessingInput(false);
     }
   };
 
@@ -237,19 +241,16 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
         </Stage>
       </Content>
       <StatusBar>
-        <StatusText>
-          {isLoading ? 'Processing...' : 'Ready to speak...'}
-        </StatusText>
+        <StatusText>{isProcessingInput ? 'Processing...' : 'Ready to speak...'}</StatusText>
         <InputContainer>
           <TextInput
             type="text"
             value={userInput}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            disabled={isLoading}
+            disabled={isProcessingInput}
           />
-          <SubmitButton onClick={handleSubmit} disabled={isLoading || !userInput.trim()}>
+          <SubmitButton onClick={handleSubmit} disabled={isProcessingInput || !userInput.trim()}>
             SEND
           </SubmitButton>
         </InputContainer>

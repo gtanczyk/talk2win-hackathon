@@ -8,17 +8,18 @@ interface AgentWithProjectile extends Agent {
   };
 }
 
-const SPEECH_DURATION = 2000; // Duration in milliseconds for speech to remain visible
-const THOUGHT_DURATION = 3000; // Duration in milliseconds for thoughts to remain visible
+const SPEECH_DURATION = 5000; // Duration in milliseconds for speech to remain visible
+const THOUGHT_DURATION = 6000; // Duration in milliseconds for thoughts to remain visible
 
 export class ScenarioEngine {
   private agents: AgentWithProjectile[] = [];
   private scenarioType: ScenarioType;
-  private lastUpdateTime: number = 0;
+  private updateInterval: NodeJS.Timeout | null = null;
 
   constructor(scenarioType: ScenarioType) {
     this.scenarioType = scenarioType;
     this.initializeAgents();
+    this.startPeriodicUpdates();
   }
 
   private initializeAgents() {
@@ -27,7 +28,20 @@ export class ScenarioEngine {
 
     for (let i = 0; i < count; i++) {
       this.agents.push(this.createAgent(i));
-      
+    }
+  }
+
+  private startPeriodicUpdates() {
+    // Update every 2 seconds
+    this.updateInterval = setInterval(() => {
+      this.update();
+    }, 2000);
+  }
+
+  public cleanup() {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+      this.updateInterval = null;
     }
   }
 
@@ -86,9 +100,7 @@ export class ScenarioEngine {
     });
   }
 
-  public update(deltaTime: number, newAgents?: Agent[]): void {
-    const currentTime = Date.now();
-
+  public update(newAgents?: Agent[]): void {
     // Clear expired text first
     this.clearExpiredText();
 
@@ -97,20 +109,6 @@ export class ScenarioEngine {
       this.updateAgentsFromResponse(newAgents);
       return;
     }
-
-    // Fallback to random updates if no new agents provided
-    if (currentTime - this.lastUpdateTime < 1000) {
-      return; // Update only once per second
-    }
-    this.lastUpdateTime = currentTime + deltaTime;
-
-    // Randomly update some agents for demonstration
-    this.agents.forEach((agent) => {
-      if (Math.random() < 0.1) {
-        // 10% chance to update each agent
-        this.updateAgentState(agent);
-      }
-    });
   }
 
   private updateAgentsFromResponse(newAgents: Agent[]): void {
@@ -149,113 +147,5 @@ export class ScenarioEngine {
 
     // Remove agents that are no longer in the new state
     this.agents = this.agents.filter((agent) => newAgents.some((newAgent) => newAgent.id === agent.id));
-  }
-
-  private updateAgentState(agent: AgentWithProjectile): void {
-    const currentTime = Date.now();
-    const previousSpokenText = agent.spokenText;
-    const previousThinkingState = agent.thinkingState;
-    // Fallback random state updates
-    const randomMood = Object.values(Mood)[Math.floor(Math.random() * Object.values(Mood).length)];
-    const randomFacialExpression = Object.values(FacialExpression)[Math.floor(Math.random() * Object.values(FacialExpression).length)];
-    const randomBodyLanguage = Object.values(BodyLanguageExpression)[Math.floor(Math.random() * Object.values(BodyLanguageExpression).length)];
-    
-    const hostileActions = [
-      BodyLanguageExpression.THROWING_OBJECT,
-      BodyLanguageExpression.HOSTILE_GESTURE,
-      BodyLanguageExpression.PROJECTILE_THROW,
-      BodyLanguageExpression.RAGE_THROW
-    ];
-      
-    // Adjust probability of hostile actions based on scenario type
-    if (this.scenarioType === ScenarioType.POLITICAL_RALLY) {
-      // Higher chance of hostile actions in political rallies
-      if (Math.random() < 0.3) {
-        const hostileActions = [
-          BodyLanguageExpression.THROWING_OBJECT,
-          BodyLanguageExpression.HOSTILE_GESTURE,
-          BodyLanguageExpression.PROJECTILE_THROW,
-        ];
-        agent.bodyLanguageExpression = hostileActions[Math.floor(Math.random() * hostileActions.length)];
-        agent.mood = Mood.ANGRY;
-        return;
-      }
-    } else if (this.scenarioType === ScenarioType.ANNOUNCE_LAYOFFS) {
-      if (Math.random() < 0.5) {
-        agent.bodyLanguageExpression = hostileActions[Math.floor(Math.random() * hostileActions.length)];
-        agent.mood = Mood.ANGRY;
-        return;
-      }
-    }
-
-    agent.mood = randomMood as Mood;
-    agent.facialExpression = randomFacialExpression as FacialExpression;
-    agent.bodyLanguageExpression = randomBodyLanguage as BodyLanguageExpression;
-
-    // Random thinking or speaking
-    if (Math.random() < 0.3) {
-      agent.thinkingState = this.getRandomThought();
-      agent.spokenText = '';
-      if (agent.thinkingState !== previousThinkingState) {
-        agent.lastThoughtTime = currentTime;
-      }
-    } else if (Math.random() > 0.6) {
-      agent.spokenText = this.getRandomSpeech();
-      agent.thinkingState = '';
-      if (agent.spokenText !== previousSpokenText) {
-        agent.lastSpokenTime = currentTime;
-      }
-    } else {
-      agent.thinkingState = '';
-      agent.spokenText = '';
-    }
-  }
-
-  private getRandomThought(): string {
-    const thoughts = ['Hmm...', 'Not sure about this...', 'Interesting...', 'Maybe...', 'Should I...?'];
-    return thoughts[Math.floor(Math.random() * thoughts.length)];
-  }
-
-  private getRandomSpeech(): string {
-    const speeches: Partial<Record<ScenarioType, string[]>> = {
-      [ScenarioType.WARRIORS_TO_BATTLE]: [
-        'For glory!',
-        'We fight!',
-        'To battle!',
-        'Victory awaits!',
-        'Take this!',
-        'Feel my wrath!',
-        'For honor!',
-        'Take this!', 'Feel my wrath!', 'For honor!', 'I will not back down!',
-        'Watch my rage!', 'You will fall!',
-        'Take this!', 'Feel my wrath!', 'For honor!'
-      ],
-      [ScenarioType.ANNOUNCE_LAYOFFS]: [
-        'Oh no...',
-        'What next?',
-        'Need to update my resume',
-        "Didn't expect this",
-        'This is unfair!',
-        'How could they?',
-        'We deserve better!',
-      ],
-      [ScenarioType.POLITICAL_RALLY]: [
-        'Yes!',
-        'Good point!',
-        'I agree!',
-        'Tell us more!',
-        'Boo!',
-        'Get off the stage!',
-        'We oppose this!',
-        'Take that!',
-        'Boo!', 'Get off the stage!', 'We oppose this!', 'Take that!',
-        'You lie!', 'Not in our name!', 'Show them our anger!',
-        'Feel our frustration!',
-        'Boo!', 'Get off the stage!', 'We oppose this!', 'Take that!'
-      ],
-    };
-
-    const scenarioSpeeches = speeches[this.scenarioType] || [];
-    return scenarioSpeeches[Math.floor(Math.random() * scenarioSpeeches.length)] || '';
   }
 }
