@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { ScenarioType, SCENARIOS, Agent, ProjectileType } from '../types';
+import { ScenarioType, SCENARIOS, Agent } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { Agent as AgentComponent } from './Agent';
@@ -137,18 +137,10 @@ interface ScenarioScreenProps {
   onBack: () => void;
 }
 
-interface AgentWithProjectile extends Agent {
-    projectile?: {
-      type: ProjectileType;
-      targetX: number;
-      targetY: number;
-    };
-  }
-
 export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, onBack }) => {
   const scenario = SCENARIOS.find((s) => s.type === scenarioType);
   const engineRef = useRef<ScenarioEngine | null>(null);
-  const [agents, setAgents] = useState<AgentWithProjectile[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isProcessingInput, setIsProcessingInput] = useState(false);
 

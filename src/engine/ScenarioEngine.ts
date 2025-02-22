@@ -1,18 +1,10 @@
-import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ProjectileType } from '../types';
-
-interface AgentWithProjectile extends Agent {
-  projectile?: {
-    type: ProjectileType;
-    targetX: number;
-    targetY: number;
-  };
-}
+import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression } from '../types';
 
 const SPEECH_DURATION = 5000; // Duration in milliseconds for speech to remain visible
 const THOUGHT_DURATION = 6000; // Duration in milliseconds for thoughts to remain visible
 
 export class ScenarioEngine {
-  private agents: AgentWithProjectile[] = [];
+  private agents: Agent[] = [];
   private scenarioType: ScenarioType;
   private updateInterval: NodeJS.Timeout | null = null;
 
@@ -58,7 +50,7 @@ export class ScenarioEngine {
     }
   }
 
-  private createAgent(index: number): AgentWithProjectile {
+  private createAgent(index: number): Agent {
     // Calculate position in a grid-like pattern
     const row = Math.floor(index / 5);
     const col = index % 5;
@@ -80,7 +72,7 @@ export class ScenarioEngine {
     };
   }
 
-  public getAgents(): AgentWithProjectile[] {
+  public getAgents(): Agent[] {
     return [...this.agents];
   }
 
