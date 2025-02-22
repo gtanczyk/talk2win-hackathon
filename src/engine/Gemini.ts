@@ -1,4 +1,5 @@
 import {
+  Content,
   FunctionCallingMode,
   FunctionDeclaration,
   GenerationConfig,
@@ -115,30 +116,22 @@ const formatAgentForHistory = (agent: Agent): GeminiAgent => {
   };
 };
 
+export type GeminiHistory = Content[];
+
 export const getResponse = async (
+  history: GeminiHistory,
   userInput: string,
   currentAgents?: Agent[],
 ): Promise<{ agents: Agent[]; goal: number }> => {
   try {
-    const history = [];
-
-    // Add system prompt as the first message
-
     // If there are current agents, add their state to the history
-    if (currentAgents?.length) {
+    if (currentAgents?.length && history.length === 0) {
       const agentsState = currentAgents.map(formatAgentForHistory);
       history.push({
         role: 'user',
         parts: [{ text: `Current agents state: \n\n\`\`\`json\n${JSON.stringify(agentsState, null, 2)}\n\`\`\`` }],
-        
       });
     }
-
-    // Add user input as the last message
-    history.push({
-      role: 'user',
-      parts: [{ text: userInput }],
-    });
 
     const chat = model.startChat({
       generationConfig,
@@ -157,6 +150,7 @@ export const getResponse = async (
     });
 
     const result = await chat.sendMessage(userInput);
+
     const response = result.response;
     const functionCall = response.functionCalls()?.[0];
 

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ScenarioType, SCENARIOS, Agent } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
-import { getResponse } from '../engine/Gemini';
+import { GeminiHistory, getResponse } from '../engine/Gemini';
 import { Container, BackButton, Content, PlaceholderText } from './ScenarioScreen.styles';
 import { AgentStage } from './AgentStage';
 import { TopProgressBar } from './TopProgressBar';
@@ -21,6 +21,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const [goalProgress, setGoalProgress] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const lastUpdateTimeRef = useRef<number>(Date.now());
+  const historyRef = useRef<GeminiHistory>([]);
 
   if (!scenario) {
     return (
@@ -58,7 +59,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
     try {
       const currentAgents = engineRef.current.getAgents();
-      const response = await getResponse(userInput, currentAgents);
+      const response = await getResponse(historyRef.current, userInput, currentAgents);
 
       if (response && response.agents) {
         engineRef.current.update(response.agents);
