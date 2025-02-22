@@ -461,10 +461,11 @@ export const Leg = styled.div`
 
 export const SpeechBubble = styled.div`
   position: absolute;
-  top: -60px;
+  top: -20px;
   left: 50%;
   transform: translateX(-50%);
   background-color: white;
+  color: black;
   border: 2px solid #000;
   border-radius: 10px;
   padding: 5px 10px;

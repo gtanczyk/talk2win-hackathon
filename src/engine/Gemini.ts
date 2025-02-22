@@ -52,7 +52,7 @@ const functionSchema: FunctionDeclaration = {
             },
             saying: {
               type: SchemaType.STRING,
-              description: 'What the agent is currently saying',
+              description: 'What the agent is currently saying, leave empty if silent',
             },
             face_expression: {
               type: SchemaType.STRING,
@@ -65,7 +65,7 @@ const functionSchema: FunctionDeclaration = {
               description: 'Current body language of the agent',
             },
           },
-          required: ['id', 'mood', 'thinking_about', 'saying', 'face_expression', 'body_language'],
+          required: ['id', 'mood', 'thinking_about', 'face_expression', 'body_language'],
         },
       },
     },
@@ -77,7 +77,7 @@ const systemPrompt = `You are responsible for maintaining state of AI agents whi
 Each human can have the following properties:
 - mood (${Object.values(Mood).join(', ')})
 - thinking about something (string)
-- saying something (string)
+- saying something (string), leave empty if character should be silent
 - face expression (${Object.values(FacialExpression).join(', ')})
 - body language (${Object.values(BodyLanguageExpression).join(', ')})
 - unique id (string, the same value as provided in the conversation history)
@@ -180,8 +180,8 @@ export const getResponse = async (
             mood: geminiAgent.mood as Mood,
             facialExpression: geminiAgent.face_expression as FacialExpression,
             bodyLanguageExpression: geminiAgent.body_language as BodyLanguageExpression,
-            thinkingState: geminiAgent.thinking_about,
-            spokenText: geminiAgent.saying,
+            thinkingState: geminiAgent.thinking_about === '...' ? '' : geminiAgent.thinking_about,
+            spokenText: geminiAgent.saying === '...' ? '' : geminiAgent.saying,
           };
         }
 
