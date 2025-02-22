@@ -130,6 +130,7 @@ export const getResponse = async (
       history.push({
         role: 'user',
         parts: [{ text: `Current agents state: \n\n\`\`\`json\n${JSON.stringify(agentsState, null, 2)}\n\`\`\`` }],
+        
       });
     }
 
