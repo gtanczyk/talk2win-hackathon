@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 import { ScenarioType, SCENARIOS, Agent } from '../types';
+import styled, { keyframes } from 'styled-components';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { Agent as AgentComponent } from './Agent';
 import { getResponse } from '../engine/Gemini';
-import { Projectile } from './Projectile'; // Import Projectile component
+import { Projectile } from './Projectile';
 
 const Container = styled.div`
   display: flex;
@@ -132,6 +132,138 @@ const SubmitButton = styled.button`
   }
 `;
 
+// Progress tracking animations
+const progressPulse = keyframes`
+  0% { box-shadow: 0 0 5px #0ff; }
+  50% { box-shadow: 0 0 15px #0ff; }
+  100% { box-shadow: 0 0 5px #0ff; }
+`;
+
+const scoreFlash = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+`;
+
+const ProgressContainer = styled.div`
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid #0ff;
+  border-radius: 4px;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border-radius: 5px;
+    background: linear-gradient(45deg, #0ff, transparent);
+    opacity: 0.3;
+    z-index: -1;
+  }
+`;
+
+const ProgressBarOuter = styled.div`
+  width: 100%;
+  height: 24px;
+  background-color: #000;
+  border: 2px solid #fff;
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+`;
+
+const ProgressBarInner = styled.div<{ progress: number; isHighScore: boolean }>`
+  width: ${props => Math.min(Math.max(props.progress, 0), 100)}%;
+  height: 100%;
+  background-color: ${props => props.isHighScore ? '#0f0' : '#0ff'};
+  transition: width 0.5s ease-out;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    animation: ${progressPulse} 2s infinite;
+  }
+`;
+
+const ProgressText = styled.div`
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 12px;
+  text-shadow: 2px 2px #000;
+  z-index: 1;
+  pointer-events: none;
+  line-height: 24px;
+  font-weight: bold;
+`;
+
+const ScoreDisplay = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+`;
+
+const ScoreText = styled.span<{ isHighScore?: boolean; isNew?: boolean }>`
+  color: ${props => props.isHighScore ? '#0f0' : '#0ff'};
+  text-shadow: ${props => props.isHighScore ? '0 0 5px #0f0' : 'none'};
+  font-size: ${props => props.isHighScore ? '14px' : '12px'};
+  font-weight: ${props => props.isHighScore ? 'bold' : 'normal'};
+  animation: ${props => props.isNew ? scoreFlash : 'none'} 0.5s ease-out;
+  
+  &::before {
+    content: ${props => props.isHighScore ? '"★ "' : '""'};
+  }
+`;
+
+const ProgressStats = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  font-size: 10px;
+`;
+
+const StatRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const StatLabel = styled.span`
+  color: #888;
+`;
+
+const StatValue = styled.span<{ highlight?: boolean }>`
+  color: ${props => props.highlight ? '#0f0' : '#fff'};
+  font-weight: ${props => props.highlight ? 'bold' : 'normal'};
+`;
+
 interface ScenarioScreenProps {
   scenarioType: ScenarioType;
   onBack: () => void;
@@ -143,6 +275,10 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const [agents, setAgents] = useState<Agent[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isProcessingInput, setIsProcessingInput] = useState(false);
+  const [goalProgress, setGoalProgress] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const lastUpdateTimeRef = useRef<number>(Date.now());
 
   if (!scenario) {
     return (
@@ -154,9 +290,11 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   }
 
   useEffect(() => {
-    // Initialize the engine
     engineRef.current = new ScenarioEngine(scenarioType);
     setAgents(engineRef.current.getAgents());
+    setGoalProgress(0);
+    setHighScore(0);
+    setIsNewHighScore(false);
 
     // Start periodic updates
     const updateInterval = setInterval(() => {
@@ -181,15 +319,24 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     if (!userInput.trim() || !engineRef.current || isProcessingInput) return;
     setIsProcessingInput(true);
     try {
-      // Get current agents state
       const currentAgents = engineRef.current.getAgents();
-
-      // Pass current agents to getResponse
       const response = await getResponse(userInput, currentAgents);
 
       if (response && response.agents) {
         engineRef.current.update(response.agents);
         setAgents(engineRef.current.getAgents());
+        
+        // Update progress and high score
+        if (response.goal) {
+          setGoalProgress(response.goal);
+          if (response.goal > highScore) {
+            setHighScore(response.goal);
+            setIsNewHighScore(true);
+            // Reset new high score flag after animation
+            setTimeout(() => setIsNewHighScore(false), 1000);
+          }
+        }
+        lastUpdateTimeRef.current = Date.now();
       }
 
       setUserInput('');
@@ -206,6 +353,11 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     }
   };
 
+  const formatTimeSinceUpdate = () => {
+    const seconds = Math.floor((Date.now() - lastUpdateTimeRef.current) / 1000);
+    return seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)}m ago`;
+  };
+
   return (
     <Container>
       <Header>
@@ -215,6 +367,37 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
       <Content>
         <PlaceholderText>{scenario.description}</PlaceholderText>
+        
+        <ProgressContainer>
+          <ProgressBarOuter>
+            <ProgressText>{Math.round(goalProgress)}%</ProgressText>
+            <ProgressBarInner 
+              progress={goalProgress} 
+              isHighScore={goalProgress >= highScore} 
+            />
+          </ProgressBarOuter>
+          
+          <ScoreDisplay>
+            <ScoreText>Current: {Math.round(goalProgress)}%</ScoreText>
+            <ScoreText isHighScore isNew={isNewHighScore}>
+              Best: {Math.round(highScore)}%
+            </ScoreText>
+          </ScoreDisplay>
+
+          <ProgressStats>
+            <StatRow>
+              <StatLabel>Last Update:</StatLabel>
+              <StatValue>{formatTimeSinceUpdate()}</StatValue>
+            </StatRow>
+            <StatRow>
+              <StatLabel>Progress Rate:</StatLabel>
+              <StatValue highlight={goalProgress > 0}>
+                {goalProgress > 0 ? `+${(goalProgress / Math.max(1, (Date.now() - lastUpdateTimeRef.current) / 1000)).toFixed(1)}%/s` : 'N/A'}
+              </StatValue>
+            </StatRow>
+          </ProgressStats>
+        </ProgressContainer>
+
         <Stage>
           {agents.map((agent) => (
             <React.Fragment key={agent.id}>
@@ -232,6 +415,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
           ))}
         </Stage>
       </Content>
+
       <StatusBar>
         <StatusText>{isProcessingInput ? 'Processing...' : 'Ready to speak...'}</StatusText>
         <InputContainer>

@@ -18,6 +18,12 @@ export interface ScenarioConfig {
   description: string;
 }
 
+export interface ScenarioProgress {
+    currentProgress: number;
+    highScore: number;
+    lastUpdateTime: number;
+}
+
 export const SCENARIOS: ScenarioConfig[] = [
   {
     type: ScenarioType.WARRIORS_TO_BATTLE,
@@ -79,20 +85,20 @@ export enum BodyLanguageExpression {
 }
 
 export interface Agent {
-  id: string;
-  x: number;
-  y: number;
-  mood: Mood;
-  facialExpression: FacialExpression;
-  bodyLanguageExpression: BodyLanguageExpression;
-  thinkingState: string;
-  spokenText: string;
-  lastSpokenTime: number;
-  lastThoughtTime: number;
-
-  projectile?: {
-    type: ProjectileType;
-    targetX: number;
-    targetY: number;
-  };
+    id: string;
+    x: number;
+    y: number;
+    mood: Mood;
+    facialExpression: FacialExpression;
+    bodyLanguageExpression: BodyLanguageExpression;
+    thinkingState: string;
+    spokenText: string;
+    lastSpokenTime: number;
+    lastThoughtTime: number;
+    progressState?: ScenarioProgress;
+    projectile?: {
+        type: ProjectileType;
+        targetX: number;
+        targetY: number;
+      };
 }

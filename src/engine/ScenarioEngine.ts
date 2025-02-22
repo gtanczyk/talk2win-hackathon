@@ -1,4 +1,4 @@
-import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression } from '../types';
+import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ScenarioProgress } from '../types';
 
 const SPEECH_DURATION = 5000; // Duration in milliseconds for speech to remain visible
 const THOUGHT_DURATION = 6000; // Duration in milliseconds for thoughts to remain visible
@@ -7,6 +7,9 @@ export class ScenarioEngine {
   private agents: Agent[] = [];
   private scenarioType: ScenarioType;
   private updateInterval: NodeJS.Timeout | null = null;
+  private lastUpdateTime: number = 0;
+  private currentProgress: number = 0;
+  private highScore: number = 0;
 
   constructor(scenarioType: ScenarioType) {
     this.scenarioType = scenarioType;
@@ -69,11 +72,24 @@ export class ScenarioEngine {
       spokenText: '',
       lastSpokenTime: currentTime,
       lastThoughtTime: currentTime,
+      progressState: {
+        currentProgress: 0,
+        highScore: 0,
+        lastUpdateTime: currentTime
+      }
     };
   }
 
   public getAgents(): Agent[] {
     return [...this.agents];
+  }
+
+  public getProgress(): ScenarioProgress {
+    return {
+      currentProgress: this.currentProgress,
+      highScore: this.highScore,
+      lastUpdateTime: this.lastUpdateTime
+    };
   }
 
   private clearExpiredText(): void {
@@ -92,13 +108,24 @@ export class ScenarioEngine {
     });
   }
 
-  public update(newAgents?: Agent[]): void {
+  public update(newAgents?: Agent[], newProgress?: number): void {
+    const currentTime = Date.now();
+
     // Clear expired text first
     this.clearExpiredText();
 
     // If new agents are provided, update the existing agents
     if (newAgents) {
       this.updateAgentsFromResponse(newAgents);
+      
+      // Update progress if provided
+      if (typeof newProgress === 'number') {
+        this.currentProgress = newProgress;
+        if (newProgress > this.highScore) {
+          this.highScore = newProgress;
+        }
+        this.lastUpdateTime = currentTime;
+      }
       return;
     }
   }
@@ -106,7 +133,6 @@ export class ScenarioEngine {
   private updateAgentsFromResponse(newAgents: Agent[]): void {
     const currentTime = Date.now();
 
-    // Update existing agents with new states while preserving positions
     // Update existing agents with new states while preserving positions and projectiles
     newAgents.forEach((newAgent) => {
       const existingAgent = this.agents.find((a) => a.id === newAgent.id);
@@ -118,12 +144,21 @@ export class ScenarioEngine {
         const updateSpokenTime = newAgent.spokenText !== existingAgent.spokenText;
         const updateThoughtTime = newAgent.thinkingState !== existingAgent.thinkingState;
 
+        // Update progress state
+        const progressState = {
+          currentProgress: this.currentProgress,
+          highScore: this.highScore,
+          lastUpdateTime: currentTime
+        };
+
+        // Update the existing agent with new state
         Object.assign(existingAgent, newAgent, {
           x,
           y,
           projectile,
           lastSpokenTime: updateSpokenTime ? currentTime : existingAgent.lastSpokenTime,
           lastThoughtTime: updateThoughtTime ? currentTime : existingAgent.lastThoughtTime,
+          progressState
         });
       } else {
         // If it's a new agent, add it to the list with a random position and current timestamps
@@ -133,6 +168,11 @@ export class ScenarioEngine {
           y: Math.random() * 400 + 50, // Random y position between 50 and 450
           lastSpokenTime: currentTime,
           lastThoughtTime: currentTime,
+          progressState: {
+            currentProgress: this.currentProgress,
+            highScore: this.highScore,
+            lastUpdateTime: currentTime
+          }
         });
       }
     });
