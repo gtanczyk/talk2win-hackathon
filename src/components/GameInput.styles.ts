@@ -64,25 +64,7 @@ export const TextInput = styled.input`
   }
 `;
 
-export const SubmitButton = styled.button`
-  font-family: 'Press Start 2P', cursive;
-  font-size: 14px;
-  padding: 10px 20px;
-  background-color: #0ff;
-  color: #000;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
 
-  &:hover {
-    background-color: #fff;
-  }
-
-  &:disabled {
-    background-color: #444;
-    cursor: not-allowed;
-  }
-`;
 
 export const MicrophoneButton = styled.button<{ isListening: boolean }>`
   font-family: 'Press Start 2P', cursive;

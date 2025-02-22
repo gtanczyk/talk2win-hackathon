@@ -4,7 +4,6 @@ import {
   StatusText,
   InputContainer,
   TextInput,
-  SubmitButton,
   MicrophoneButton,
   ErrorMessage,
   FloatingText,
@@ -124,9 +123,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
         >
           🎤
         </MicrophoneButton>
-        <SubmitButton onClick={handleSubmit} disabled={isProcessingInput || !userInput.trim()}>
-          SEND
-        </SubmitButton>
+      
       </InputContainer>
       {speechRecognitionError && <ErrorMessage>{speechRecognitionError}</ErrorMessage>}
       {submittedText && <FloatingText>{submittedText}</FloatingText>}
