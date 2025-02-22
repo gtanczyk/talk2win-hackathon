@@ -80,6 +80,21 @@ export class ScenarioEngine {
     const randomBodyLanguage =
       Object.values(BodyLanguageExpression)[Math.floor(Math.random() * Object.values(BodyLanguageExpression).length)];
 
+    // Adjust probability of hostile actions based on scenario type
+    if (this.scenarioType === ScenarioType.POLITICAL_RALLY) {
+      // Higher chance of hostile actions in political rallies
+      if (Math.random() < 0.3) {
+        const hostileActions = [
+          BodyLanguageExpression.THROWING_OBJECT,
+          BodyLanguageExpression.HOSTILE_GESTURE,
+          BodyLanguageExpression.PROJECTILE_THROW
+        ];
+        agent.bodyLanguageExpression = hostileActions[Math.floor(Math.random() * hostileActions.length)];
+        agent.mood = Mood.ANGRY;
+        return;
+      }
+    }
+
     agent.mood = randomMood as Mood;
     agent.facialExpression = randomFacialExpression as FacialExpression;
     agent.bodyLanguageExpression = randomBodyLanguage as BodyLanguageExpression;
@@ -104,9 +119,18 @@ export class ScenarioEngine {
 
   private getRandomSpeech(): string {
     const speeches: Partial<Record<ScenarioType, string[]>> = {
-      [ScenarioType.WARRIORS_TO_BATTLE]: ['For glory!', 'We fight!', 'To battle!', 'Victory awaits!'],
-      [ScenarioType.ANNOUNCE_LAYOFFS]: ['Oh no...', 'What next?', 'Need to update my resume', "Didn't expect this"],
-      [ScenarioType.POLITICAL_RALLY]: ['Yes!', 'Good point!', 'I agree!', 'Tell us more!'],
+      [ScenarioType.WARRIORS_TO_BATTLE]: [
+        'For glory!', 'We fight!', 'To battle!', 'Victory awaits!',
+        'Take this!', 'Feel my wrath!', 'For honor!'
+      ],
+      [ScenarioType.ANNOUNCE_LAYOFFS]: [
+        'Oh no...', 'What next?', 'Need to update my resume', "Didn't expect this",
+        'This is unfair!', 'How could they?', 'We deserve better!'
+      ],
+      [ScenarioType.POLITICAL_RALLY]: [
+        'Yes!', 'Good point!', 'I agree!', 'Tell us more!',
+        'Boo!', 'Get off the stage!', 'We oppose this!', 'Take that!'
+      ],
     };
 
     const scenarioSpeeches = speeches[this.scenarioType] || [];

@@ -28,6 +28,12 @@ const StyledAgent = styled.div<StyledAgentProps>`
                 return 'wave 1s infinite';
             case BodyLanguageExpression.CHEERING:
                 return 'cheer 1s infinite';
+            case BodyLanguageExpression.THROWING_OBJECT:
+                return 'throwObject 1s infinite';
+            case BodyLanguageExpression.HOSTILE_GESTURE:
+                return 'hostileGesture 1.5s infinite';
+            case BodyLanguageExpression.PROJECTILE_THROW:
+                return 'projectileThrow 0.8s infinite';
             default:
                 return 'none';
         }
@@ -60,6 +66,31 @@ const StyledAgent = styled.div<StyledAgentProps>`
     @keyframes cheer {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.1); }
+    }
+
+    @keyframes throwObject {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(-15deg); }
+        50% { transform: rotate(30deg); }
+        75% { transform: rotate(15deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    @keyframes hostileGesture {
+        0% { transform: translateX(0) rotate(0deg); }
+        20% { transform: translateX(-5px) rotate(-5deg); }
+        40% { transform: translateX(5px) rotate(5deg); }
+        60% { transform: translateX(-3px) rotate(-3deg); }
+        80% { transform: translateX(3px) rotate(3deg); }
+        100% { transform: translateX(0) rotate(0deg); }
+    }
+
+    @keyframes projectileThrow {
+        0% { transform: rotate(0deg) translateY(0); }
+        25% { transform: rotate(-20deg) translateY(-5px); }
+        50% { transform: rotate(40deg) translateY(0); }
+        75% { transform: rotate(20deg) translateY(-3px); }
+        100% { transform: rotate(0deg) translateY(0); }
     }
 `;
 
@@ -138,6 +169,7 @@ const Arm = styled.div<{ side: 'left' | 'right', bodyLanguage: BodyLanguageExpre
     top: 10px;
     ${props => props.side === 'left' ? 'left: -18px' : 'right: -18px'};
     transform-origin: ${props => props.side === 'left' ? 'right' : 'left'} center;
+    transition: transform 0.3s ease;
     transform: ${props => {
         switch (props.bodyLanguage) {
             case BodyLanguageExpression.HANDS_ON_HIPS:
@@ -146,10 +178,51 @@ const Arm = styled.div<{ side: 'left' | 'right', bodyLanguage: BodyLanguageExpre
                 return props.side === 'right' ? 'rotate(-45deg)' : 'none';
             case BodyLanguageExpression.WAVING:
                 return props.side === 'right' ? 'rotate(-45deg)' : 'none';
+            case BodyLanguageExpression.THROWING_OBJECT:
+                return props.side === 'right' ? 'rotate(-120deg)' : 'rotate(30deg)';
+            case BodyLanguageExpression.HOSTILE_GESTURE:
+                return props.side === 'right' ? 'rotate(-60deg)' : 'rotate(60deg)';
+            case BodyLanguageExpression.PROJECTILE_THROW:
+                return props.side === 'right' ? 'rotate(-135deg)' : 'rotate(45deg)';
             default:
                 return 'none';
         }
     }};
+    animation: ${props => {
+        switch (props.bodyLanguage) {
+            case BodyLanguageExpression.THROWING_OBJECT:
+                return props.side === 'right' ? 'throwArm 1s infinite' : 'none';
+            case BodyLanguageExpression.HOSTILE_GESTURE:
+                return 'shakeArm 1.5s infinite';
+            case BodyLanguageExpression.PROJECTILE_THROW:
+                return props.side === 'right' ? 'projectileArm 0.8s infinite' : 'none';
+            default:
+                return 'none';
+        }
+    }};
+
+    @keyframes throwArm {
+        0% { transform: rotate(-45deg); }
+        25% { transform: rotate(-90deg); }
+        50% { transform: rotate(-120deg); }
+        75% { transform: rotate(-90deg); }
+        100% { transform: rotate(-45deg); }
+    }
+
+    @keyframes shakeArm {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(30deg); }
+        75% { transform: rotate(-30deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    @keyframes projectileArm {
+        0% { transform: rotate(-45deg); }
+        25% { transform: rotate(-100deg); }
+        50% { transform: rotate(-135deg); }
+        75% { transform: rotate(-100deg); }
+        100% { transform: rotate(-45deg); }
+    }
 `;
 
 const Legs = styled.div`

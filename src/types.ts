@@ -62,7 +62,10 @@ export enum BodyLanguageExpression {
     WAVING = 'WAVING',
     JUMPING = 'JUMPING',
     COWERING = 'COWERING',
-    CHEERING = 'CHEERING'
+    CHEERING = 'CHEERING',
+    THROWING_OBJECT = 'THROWING_OBJECT',
+    HOSTILE_GESTURE = 'HOSTILE_GESTURE',
+    PROJECTILE_THROW = 'PROJECTILE_THROW'
 }
 
 export interface Agent {
