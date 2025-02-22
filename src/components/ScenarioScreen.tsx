@@ -2,35 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ScenarioType, SCENARIOS, Agent } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
-import { Agent as AgentComponent } from './Agent';
 import { getResponse } from '../engine/Gemini';
-import { Projectile } from './Projectile';
 import {
   Container,
   Header,
   Title,
   BackButton,
-  Stage,
   Content,
   PlaceholderText,
-  StatusBar,
-  StatusText,
-  InputContainer,
-  TextInput,
-  SubmitButton,
-  ProgressContainer,
-  ProgressBarOuter,
-  ProgressBarInner,
-  ProgressText,
-  ScoreDisplay,
-  ScoreText,
-  ProgressStats,
-  StatRow,
-  StatLabel,
-  StatValue,
-  MicrophoneButton,
-  ErrorMessage,
 } from './ScenarioScreen.styles';
+import { StatusBar } from './StatusBar';
+import { ProgressDisplay } from './ProgressDisplay';
+import { AgentStage } from './AgentStage';
 
 interface ScenarioScreenProps {
   scenarioType: ScenarioType;
@@ -180,11 +163,6 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     }
   };
 
-  const formatTimeSinceUpdate = () => {
-    const seconds = Math.floor((Date.now() - lastUpdateTimeRef.current) / 1000);
-    return seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)}m ago`;
-  };
-
   return (
     <Container>
       <Header>
@@ -195,82 +173,26 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       <Content>
         <PlaceholderText>{scenario.description}</PlaceholderText>
 
-        <ProgressContainer>
-          <ProgressBarOuter>
-            <ProgressText>{Math.round(goalProgress)}%</ProgressText>
-            <ProgressBarInner progress={goalProgress} isHighScore={goalProgress >= highScore} />
-          </ProgressBarOuter>
+        <ProgressDisplay
+          goalProgress={goalProgress}
+          highScore={highScore}
+          isNewHighScore={isNewHighScore}
+          lastUpdateTime={lastUpdateTimeRef.current}
+        />
 
-          <ScoreDisplay>
-            <ScoreText>Current: {Math.round(goalProgress)}%</ScoreText>
-            <ScoreText isHighScore isNew={isNewHighScore}>
-              Best: {Math.round(highScore)}%
-            </ScoreText>
-          </ScoreDisplay>
-
-          <ProgressStats>
-            <StatRow>
-              <StatLabel>Last Update:</StatLabel>
-              <StatValue>{formatTimeSinceUpdate()}</StatValue>
-            </StatRow>
-            <StatRow>
-              <StatLabel>Progress Rate:</StatLabel>
-              <StatValue highlight={goalProgress > 0}>
-                {goalProgress > 0
-                  ? `+${(goalProgress / Math.max(1, (Date.now() - lastUpdateTimeRef.current) / 1000)).toFixed(1)}%/s`
-                  : 'N/A'}
-              </StatValue>
-            </StatRow>
-          </ProgressStats>
-        </ProgressContainer>
-
-        <Stage>
-          {agents
-            .sort((l, r) => (l.y < r.y ? 1 : -1))
-            .map((agent) => (
-              <React.Fragment key={agent.id}>
-                <AgentComponent {...agent} />
-                {agent.projectile && (
-                  <Projectile
-                    type={agent.projectile.type}
-                    x={agent.x}
-                    y={agent.y}
-                    targetX={agent.projectile.targetX}
-                    targetY={agent.projectile.targetY}
-                  />
-                )}
-              </React.Fragment>
-            ))}
-        </Stage>
+        <AgentStage agents={agents} />
       </Content>
 
-      <StatusBar>
-        <StatusText>
-          {isProcessingInput ? 'Processing...' : isSpeechRecognitionActive ? 'Listening...' : 'Ready to speak...'}
-        </StatusText>
-        <InputContainer>
-          <TextInput
-            type="text"
-            value={userInput}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            disabled={isProcessingInput || isSpeechRecognitionActive}
-            placeholder={isSpeechRecognitionActive ? 'Listening...' : 'Type your message...'}
-          />
-          <MicrophoneButton
-            onClick={toggleSpeechRecognition}
-            disabled={isProcessingInput}
-            isListening={isSpeechRecognitionActive}
-            title={isSpeechRecognitionActive ? 'Stop listening' : 'Start listening'}
-          >
-            🎤
-          </MicrophoneButton>
-          <SubmitButton onClick={handleSubmit} disabled={isProcessingInput || !userInput.trim()}>
-            SEND
-          </SubmitButton>
-        </InputContainer>
-        {speechRecognitionError && <ErrorMessage>{speechRecognitionError}</ErrorMessage>}
-      </StatusBar>
+      <StatusBar
+        isProcessingInput={isProcessingInput}
+        isSpeechRecognitionActive={isSpeechRecognitionActive}
+        userInput={userInput}
+        speechRecognitionError={speechRecognitionError}
+        handleInputChange={handleInputChange}
+        handleKeyPress={handleKeyPress}
+        handleSubmit={handleSubmit}
+        toggleSpeechRecognition={toggleSpeechRecognition}
+      />
     </Container>
   );
 };
