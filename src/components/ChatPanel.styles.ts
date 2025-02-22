@@ -28,6 +28,51 @@ const glowEffect = keyframes`
   100% { background-position: 100% 50%; }
 `;
 
+const pulseAnimation = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+`;
+
+export const NotificationBadge = styled.div<{ count: number }>`
+  position: absolute;
+  top: -8px;
+  left: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #0ff;
+  color: #000;
+  border-radius: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: ${({ count }) => (count > 0 ? 1 : 0)};
+  transform: ${({ count }) => (count > 0 ? 'scale(1)' : 'scale(0.5)')};
+  pointer-events: none;
+  z-index: 1002;
+  box-shadow: 0 0 10px #0ff,
+              0 0 20px rgba(0, 255, 255, 0.5);
+  animation: ${pulseAnimation} 2s infinite ease-in-out;
+
+  &:hover {
+    background: #0088ff;
+    box-shadow: 0 0 15px #0088ff,
+                0 0 30px rgba(0, 136, 255, 0.5);
+  }
+
+  @media (max-width: 768px) {
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+`;
+
 // Components
 export const ScrollIndicator = styled.div<{ show: boolean }>`
   position: absolute;
