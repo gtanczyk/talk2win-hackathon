@@ -177,6 +177,12 @@ export class ScenarioEngine {
   }
 
   private updateAgentsFromResponse(newAgents: Agent[]): void {
+    // Clear speaking and thinking states for all agents
+    this.agents.forEach((agent) => {
+      agent.spokenText = '';
+      agent.thinkingState = '';
+    });
+
     // Update existing agents with new states while preserving positions and projectiles
     newAgents.forEach((newAgent) => {
       const existingAgent = this.agents.find((a) => a.id === newAgent.id);
@@ -199,8 +205,5 @@ export class ScenarioEngine {
         });
       }
     });
-
-    // Remove agents that are no longer in the new state
-    this.agents = this.agents.filter((agent) => newAgents.some((newAgent) => newAgent.id === agent.id));
   }
 }
