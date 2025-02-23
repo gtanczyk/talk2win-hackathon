@@ -27,24 +27,38 @@ A retro-style game where you win by talking! Use your speech and persuasion skil
 
 1. Clone the repository:
 
-```bash
-git clone [repository-url]
-cd talk2win-hackathon
-```
+   ```bash
+   git clone [repository-url]
+   cd talk2win-hackathon
+   ```
 
 2. Install dependencies:
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Start the development server:
+3. Set up environment variables
 
-```bash
-npm run start
-```
+   Obtain api keys from:
 
-4. Open your browser and navigate to `http://localhost:5173`
+   - [AI Studio API Key](https://aistudio.google.com/app/apikey)
+   - [Eleven Labs API Key](https://elevenlabs.io/app/settings/api-keys)
+
+   Export them:
+
+   ```
+   export API_KEY="... your AI Studio API Key ..."
+   export ELEVENLABS_API_KEY="... your Eleven Labs API Key ..."
+   ```
+
+4. Start the development server:
+
+   ```bash
+   npm run start
+   ```
+
+5. Open your browser and navigate to `http://localhost:5173`
 
 ## Game Flow 🎯
 
