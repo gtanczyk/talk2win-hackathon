@@ -210,6 +210,7 @@ export interface Agent {
   bodyLanguageExpression: BodyLanguageExpression;
   thinkingState: string;
   spokenText: string;
+  hat?: boolean;
   projectile?: {
     type: ProjectileType;
     targetX: number;

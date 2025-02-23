@@ -91,6 +91,7 @@ export class ScenarioEngine {
       bodyLanguageExpression: Object.values(BodyLanguageExpression).sort(() => Math.random() - 0.5)[0],
       thinkingState: '',
       spokenText: '',
+      hat: this.scenarioType === ScenarioType.POLITICAL_RALLY && Math.random() > 0.1,
     };
   }
 

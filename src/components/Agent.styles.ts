@@ -474,6 +474,7 @@ export const SpeechBubble = styled.div`
   font-size: 12px;
   max-width: 150px;
   overflow: hidden;
+  z-index: 1;
 
   &::after {
     content: '';
@@ -491,6 +492,7 @@ export const ThinkBubble = styled.div`
   position: absolute;
   top: -40px;
   right: -80px;
+  z-index: 1;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 10px;
   padding: 5px 10px;

@@ -93,6 +93,7 @@ const generateAgentVariations = (scenarioType: ScenarioType): AgentType[] => {
           bodyLanguageExpression: BodyLanguageExpression.CHEERING,
           thinkingState: '',
           spokenText: '',
+          hat: true,
         },
         {
           id: '2',
@@ -103,6 +104,7 @@ const generateAgentVariations = (scenarioType: ScenarioType): AgentType[] => {
           bodyLanguageExpression: BodyLanguageExpression.THROWING_OBJECT,
           thinkingState: '',
           spokenText: '',
+          hat: true,
         },
         {
           id: '3',

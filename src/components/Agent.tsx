@@ -17,6 +17,7 @@ import {
   Shield,
 } from './Agent.styles';
 import { AgentSound } from './AgentSound';
+import { Hat as PoliticalHat } from './AgentAccessories.styles';
 
 export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
   x,
@@ -25,6 +26,7 @@ export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
   facialExpression,
   bodyLanguageExpression,
   thinkingState,
+  hat,
   spokenText,
   scenarioType,
 }) => {
@@ -37,6 +39,7 @@ export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
     return () => clearTimeout(timeout);
   }, [spokenText]);
 
+  const isPoliticalRally = scenarioType === ScenarioType.POLITICAL_RALLY;
   const isWarrior = scenarioType === ScenarioType.WARRIORS_TO_BATTLE;
 
   return (
@@ -46,8 +49,10 @@ export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
         {delayedSpokenText && <SpeechBubble>{spokenText}</SpeechBubble>}
         {delayedSpokenText && <AgentSound text={delayedSpokenText} scenarioType={scenarioType} />}
 
+        {isPoliticalRally && hat && <PoliticalHat />}
         {isWarrior && <VikingHelmet />}
 
+        {/* Render glasses before eyes if in layoffs scenario */}
         <Head expression={facialExpression}>
           <Eyes expression={facialExpression} />
           <Mouth expression={facialExpression} />

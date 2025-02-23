@@ -99,6 +99,16 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     }
   };
 
+  // Apply accessories to agents based on scenario
+  const agentsWithAccessories = agents.map(agent => ({
+    ...agent,
+    // Add hats to some agents in political rally
+    hat: scenarioType === ScenarioType.POLITICAL_RALLY && Math.random() > 0.5,
+    // Add glasses to some agents in layoffs scenario
+    glasses: scenarioType === ScenarioType.ANNOUNCE_LAYOFFS && Math.random() > 0.6
+  }));
+
+
   const handleStartGame = () => {
     setGameState(GameState.PLAYING);
   };
@@ -130,7 +140,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     <Container>
       {goalProgress && <TopProgressBar progress={goalProgress} highScore={highScore} />}
       <Content>
-        <AgentStage agents={agents} scenarioType={scenarioType} />
+        <AgentStage agents={agentsWithAccessories} scenarioType={scenarioType} />
       </Content>
 
       <GameInput isProcessingInput={isProcessingInput} onSubmit={handleSubmit} />
