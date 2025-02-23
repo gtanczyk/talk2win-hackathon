@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+
 export const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -7,6 +8,31 @@ export const Container = styled.div`
   background-color: #000;
   color: #fff;
   font-family: 'Press Start 2P', cursive;
+`;
+
+export const TopContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+`;
+
+export const TimerContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background-color: #000;
+`;
+
+export const TimerText = styled.span`
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
 `;
 
 export const BackButton = styled.button`

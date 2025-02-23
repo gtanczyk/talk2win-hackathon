@@ -3,7 +3,7 @@ import { ScenarioType, SCENARIOS, Agent, GameState, Message } from '../types';
 import '@fontsource/press-start-2p';
 import { ScenarioEngine } from '../engine/ScenarioEngine';
 import { GeminiHistory, getResponse } from '../engine/Gemini';
-import { Container, Content } from './ScenarioScreen.styles';
+import { Container, Content, TopContainer, TimerContainer, TimerText } from './ScenarioScreen.styles';
 import { AgentStage } from './AgentStage';
 import { TopProgressBar } from './TopProgressBar';
 import { GameInput } from './GameInput';
@@ -16,6 +16,14 @@ interface ScenarioScreenProps {
   onBack: () => void;
 }
 
+const INITIAL_TIME = 300; 
+
+const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
 export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, onBack }) => {
   const scenario = SCENARIOS.find((s) => s.type === scenarioType);
   const engineRef = useRef<ScenarioEngine | null>(null);
@@ -23,10 +31,12 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   const [isProcessingInput, setIsProcessingInput] = useState(false);
   const [goalProgress, setGoalProgress] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
   const lastUpdateTimeRef = useRef<number>(Date.now());
   const historyRef = useRef<GeminiHistory>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.INTRO);
   const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   if (!scenario) {
     return null;
@@ -39,6 +49,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
     setGoalProgress(0);
     setHighScore(0);
     setConversationHistory([]);
+    setTimeLeft(INITIAL_TIME);
 
     // Start periodic updates only when in PLAYING state
     let updateInterval: NodeJS.Timeout | null = null;
@@ -52,6 +63,18 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
           setConversationHistory(engineRef.current.getConversationHistory());
         }
       }, 100); // Update every 100ms for smooth animations
+
+      // Start timer countdown
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            // Time's up - end the game
+            setGameState(GameState.VICTORY);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
     }
 
     // Cleanup
@@ -59,16 +82,19 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
       if (updateInterval) {
         clearInterval(updateInterval);
       }
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
       engineRef.current?.cleanup();
     };
   }, [scenarioType, gameState]);
 
   // Check for victory condition
   useEffect(() => {
-    if (goalProgress >= 100 && gameState === GameState.PLAYING) {
+    if ((goalProgress >= 100 || timeLeft === 0) && gameState === GameState.PLAYING) {
       setGameState(GameState.VICTORY);
     }
-  }, [goalProgress, gameState]);
+  }, [goalProgress, timeLeft, gameState]);
 
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim() || !engineRef.current || isProcessingInput) return;
@@ -102,6 +128,7 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   const handleStartGame = () => {
     setGameState(GameState.PLAYING);
+    setTimeLeft(INITIAL_TIME);
     engineRef.current?.setGameState(GameState.PLAYING);
   };
 
@@ -116,7 +143,12 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
 
   return (
     <Container>
-      <TopProgressBar progress={goalProgress} highScore={highScore} />
+      <TopContainer>
+        <TopProgressBar progress={goalProgress} highScore={highScore} />
+        <TimerContainer>
+          <TimerText>{formatTime(timeLeft)}</TimerText>
+        </TimerContainer>
+      </TopContainer>
       <Content>
         <AgentStage agents={agents} scenarioType={scenarioType}/>
         {gameState === GameState.PLAYING && (
