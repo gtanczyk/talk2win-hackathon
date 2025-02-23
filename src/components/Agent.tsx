@@ -12,6 +12,9 @@ import {
   Leg,
   SpeechBubble,
   ThinkBubble,
+  VikingHelmet,
+  Sword,
+  Shield,
 } from './Agent.styles';
 import { AgentSound } from './AgentSound';
 
@@ -34,12 +37,16 @@ export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
     return () => clearTimeout(timeout);
   }, [spokenText]);
 
+  const isWarrior = scenarioType === ScenarioType.WARRIORS_TO_BATTLE;
+
   return (
     <AgentPosition x={x} y={y}>
       <StyledAgent mood={mood} bodyLanguage={bodyLanguageExpression}>
         {thinkingState && <ThinkBubble>{thinkingState}</ThinkBubble>}
         {delayedSpokenText && <SpeechBubble>{spokenText}</SpeechBubble>}
         {delayedSpokenText && <AgentSound text={delayedSpokenText} scenarioType={scenarioType} />}
+
+        {isWarrior && <VikingHelmet />}
 
         <Head expression={facialExpression}>
           <Eyes expression={facialExpression} />
@@ -49,6 +56,12 @@ export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
         <Body bodyLanguage={bodyLanguageExpression}>
           <Arm side="left" bodyLanguage={bodyLanguageExpression} />
           <Arm side="right" bodyLanguage={bodyLanguageExpression} />
+          {isWarrior && (
+            <>
+              <Shield side="left" />
+              <Sword side="right" />
+            </>
+          )}
         </Body>
 
         <Legs>

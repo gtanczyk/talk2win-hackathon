@@ -498,3 +498,115 @@ export const ThinkBubble = styled.div`
   font-style: italic;
   color: #666;
 `;
+
+// Viking-themed components
+export const VikingHelmet = styled.div`
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 25px;
+  background-color: #808080;
+  border: 2px solid #000;
+  border-radius: 5px 5px 0 0;
+
+  /* Helmet horns */
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 20px;
+    background-color: #d3d3d3;
+    border: 2px solid #000;
+  }
+
+  &::before {
+    left: -8px;
+    transform: rotate(-30deg);
+    border-radius: 50% 50% 0 50%;
+  }
+
+  &::after {
+    right: -8px;
+    transform: rotate(30deg);
+    border-radius: 50% 50% 50% 0;
+  }
+`;
+
+export const Sword = styled.div<{ side: 'left' | 'right' }>`
+  position: absolute;
+  top: ${(props) => (props.side === 'right' ? '16px' : '12px')};
+  ${(props) => (props.side === 'right' ? 'right: -15px' : 'left: -35px')};
+  width: 6px;
+  height: 30px;
+  background-color: #c0c0c0;
+  border: 1px solid #000;
+  transform-origin: top center;
+  transform: ${(props) => (props.side === 'right' ? 'rotate(-135deg)' : 'rotate(45deg)')};
+
+  /* Sword handle */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -4px;
+    width: 12px;
+    height: 4px;
+    background-color: #8b4513;
+    border: 1px solid #000;
+  }
+
+  /* Sword tip */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #c0c0c0;
+    border: 1px solid #000;
+    transform: rotate(45deg);
+  }
+`;
+
+export const Shield = styled.div<{ side: 'left' | 'right' }>`
+  position: absolute;
+  top: 5px;
+  ${(props) => (props.side === 'right' ? 'right: -28px' : 'left: -28px')};
+  width: 40px;
+  height: 45px;
+  background-color: #8b4513;
+  border: 2px solid #000;
+  border-radius: 50% 50% 45% 45%;
+  transform: ${(props) => (props.side === 'right' ? 'rotate(-10deg)' : 'rotate(10deg)')};
+
+  /* Shield decoration */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background-color: #daa520;
+    border: 1px solid #000;
+    border-radius: 50%;
+  }
+
+  /* Shield rim highlight */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border: 1px solid #a0522d;
+    border-radius: 45% 45% 40% 40%;
+  }
+`;
