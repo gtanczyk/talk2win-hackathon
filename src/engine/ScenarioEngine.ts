@@ -1,5 +1,11 @@
 import { Agent, ScenarioType, Mood, FacialExpression, BodyLanguageExpression, ScenarioProgress, GameState, Message } from '../types';
 
+// Define scenario configuration type
+interface ScenarioConfig {
+  type: ScenarioType;
+  timeLimit: number;
+}
+
 const SPEECH_DURATION = 5000; // Duration in milliseconds for speech to remain visible
 const THOUGHT_DURATION = 6000; // Duration in milliseconds for thoughts to remain visible
 const MAX_MESSAGES = 50; // Maximum number of messages to store in history
@@ -12,11 +18,34 @@ export class ScenarioEngine {
   private currentProgress: number = 0;
   private highScore: number = 0;
   private gameState: GameState = GameState.INTRO;
+  private timeLeft: number = 0;
   private conversationHistory: Message[] = [];
+  
+  // Define SCENARIOS as a private static readonly array
+  private static readonly SCENARIOS: ScenarioConfig[] = [
+    {
+      type: ScenarioType.WARRIORS_TO_BATTLE,
+      timeLimit: 300,
+    },
+    {
+      type: ScenarioType.ANNOUNCE_LAYOFFS,
+      timeLimit: 240,
+    },
+    {
+      type: ScenarioType.POLITICAL_RALLY,
+      timeLimit: 180,
+    },
+  ];
 
   constructor(scenarioType: ScenarioType) {
     this.scenarioType = scenarioType;
     this.initializeAgents();
+    
+    // Initialize time limit based on scenario
+    const scenario = ScenarioEngine.SCENARIOS.find(s => s.type === scenarioType);
+    if (scenario) {
+      this.timeLeft = scenario.timeLimit;
+    }
     this.startPeriodicUpdates();
   }
 
@@ -56,6 +85,14 @@ export class ScenarioEngine {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
+    }
+  }
+
+  private checkDefeatCondition(): void {
+    if (this.timeLeft <= 0 && this.gameState === GameState.PLAYING) {
+      this.setGameState(GameState.DEFEAT);
+      // Stop periodic updates
+      this.cleanup();
     }
   }
 
@@ -110,6 +147,10 @@ export class ScenarioEngine {
     return this.gameState;
   }
 
+  public getTimeLeft(): number {
+    return this.timeLeft;
+  }
+
   public setGameState(newState: GameState) {
     const oldState = this.gameState;
     this.gameState = newState;
@@ -119,6 +160,8 @@ export class ScenarioEngine {
       if (newState === GameState.PLAYING) {
         // Start periodic updates when entering PLAYING state
         this.startPeriodicUpdates();
+      } else if (newState === GameState.DEFEAT) {
+        this.cleanup(); // Ensure cleanup on defeat
       } else {
         // Clean up interval when leaving PLAYING state
         this.cleanup();
@@ -129,6 +172,7 @@ export class ScenarioEngine {
     if (newState === GameState.INTRO) {
       this.currentProgress = 0;
       this.conversationHistory = [];
+      this.timeLeft = ScenarioEngine.SCENARIOS.find(s => s.type === this.scenarioType)?.timeLimit || 0;
     }
   }
 
@@ -196,6 +240,12 @@ export class ScenarioEngine {
     // Clear expired text first
     this.clearExpiredText();
 
+    // Update time left if in PLAYING state
+    if (this.gameState === GameState.PLAYING && this.timeLeft > 0) {
+      this.timeLeft -= 1;
+      this.checkDefeatCondition();
+    }
+
     // If new agents are provided, update the existing agents
     if (newAgents) {
       this.updateAgentsFromResponse(newAgents);
@@ -211,7 +261,6 @@ export class ScenarioEngine {
         // Check for victory condition after updating progress
         this.checkVictoryCondition();
       }
-      return;
     }
   }
 

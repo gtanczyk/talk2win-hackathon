@@ -16,6 +16,7 @@ export enum GameState {
   INTRO = 'INTRO',
   PLAYING = 'PLAYING',
   VICTORY = 'VICTORY',
+  DEFEAT = 'DEFEAT',
 }
 
 interface ScenarioConfig {
@@ -23,6 +24,7 @@ interface ScenarioConfig {
   title: string;
   description: string;
   instruction: string;
+  timeLimit: number; // Time limit in seconds
 }
 
 export interface ScenarioProgress {
@@ -37,24 +39,28 @@ export const SCENARIOS: ScenarioConfig[] = [
     title: 'Warriors to Battle',
     description: 'Encourage warriors to fight (goal: high % of warriors encouraged to fight)',
     instruction: 'You are a commander preparing people for battle, you must encourage them to fight!',
+    timeLimit: 180, // 3 minutes
   },
   {
     type: ScenarioType.ANNOUNCE_LAYOFFS,
     title: 'Announce Layoffs',
     description: 'Announce layoffs at company (goal: low % of people who will resign additionally because of layoffs)',
     instruction: 'You are a manager announcing company layoffs, you need to keep morale high and minimize the number of people who will resign.',
+    timeLimit: 240, // 4 minutes
   },
   {
     type: ScenarioType.POLITICAL_RALLY,
     title: 'Political Rally',
     description: 'Run political rally (goal: % of people becoming supporters)',
     instruction: 'You are a politician running a rally, you need to convince as many people as possible to become your supporters.',
+    timeLimit: 300, // 5 minutes
   },
   {
     type: ScenarioType.CREATE_YOUR_OWN,
     title: 'Create Your Own',
     description: 'Create your own scenario',
     instruction: '',
+    timeLimit: 300, // 5 minutes
   },
 ];
 

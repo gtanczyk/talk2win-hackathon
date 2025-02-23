@@ -8,21 +8,22 @@ import {
 
 interface TopProgressBarProps {
   progress: number;
-  highScore: number;
-}
+  }
+
+// Helper function to format time as MM:SS
+
 
 export const TopProgressBar: React.FC<TopProgressBarProps> = ({
-  progress,
-}) => {
+  progress}
+  ) => {
   // Ensure progress is within 0-100 range
   const normalizedProgress = Math.min(Math.max(progress, 0), 100);
 
   return (
-    
     <TopProgressBarContainer>
       <ProgressText>
-          {Math.round(normalizedProgress)}%
-        </ProgressText>
+        Progress: {Math.round(normalizedProgress)}%
+      </ProgressText>
       <ProgressBarOuter>
         <ProgressBarInner progress={normalizedProgress} />
       </ProgressBarOuter>

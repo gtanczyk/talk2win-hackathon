@@ -101,25 +101,17 @@ Each human can have the following properties:
 You need to maintain the state of ai agents. The agents are reacting to user messages. User is speaking to them.
 Agents are supposed to react to those speeches. After each user message, update the state of agents, provide updates for agents which actually changed their state, skip unchanged agents.
 
-The response should contain:
-1. A score representing the goal: % of warriors who decide to fight
-2. Updated states for agents that have changed
-3. Agent IDs should be the same as in the conversation history
-4. Always update state of some agents, add some randomness to the state updates
-
 ${scenario.instruction}`;
 };
 
-const formatAgentForHistory = (agent: Agent): GeminiAgent => {
-  return {
-    id: agent.id,
-    mood: agent.mood,
-    thinking_about: agent.thinkingState,
-    saying: agent.spokenText,
-    face_expression: agent.facialExpression,
-    body_language: agent.bodyLanguageExpression,
-  };
-};
+const formatAgentForHistory = (agent: Agent): GeminiAgent => ({
+  id: agent.id,
+  mood: agent.mood,
+  thinking_about: agent.thinkingState,
+  saying: agent.spokenText,
+  face_expression: agent.facialExpression,
+  body_language: agent.bodyLanguageExpression,
+});
 
 export type GeminiHistory = Content[];
 

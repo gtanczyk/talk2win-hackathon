@@ -13,6 +13,7 @@ export const BackButton = styled.button`
   font-family: 'Press Start 2P', cursive;
   font-size: 16px;
   padding: 10px 20px;
+  width: fit-content;
   background-color: transparent;
   color: #fff;
   border: 2px solid #fff;
@@ -24,6 +25,9 @@ export const BackButton = styled.button`
     color: #000;
   }
 `;
+
+
+
 
 export const Content = styled.div`
   flex: 1;
@@ -38,4 +42,12 @@ export const PlaceholderText = styled.p`
   text-align: center;
   margin: 20px 0;
   color: #888;
+`;
+export const TimeLeft = styled.div`
+  font-size: 24px;
+  text-align: center;
+  margin: 20px 0;
+  color: #fff;
+
+
 `;
