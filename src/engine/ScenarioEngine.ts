@@ -67,9 +67,9 @@ export class ScenarioEngine {
       case ScenarioType.WARRIORS_TO_BATTLE:
         return 10;
       case ScenarioType.ANNOUNCE_LAYOFFS:
-        return 15;
+        return 10;
       case ScenarioType.POLITICAL_RALLY:
-        return 20;
+        return 10;
       default:
         return 5;
     }

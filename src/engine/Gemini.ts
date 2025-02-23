@@ -108,6 +108,15 @@ The response should contain:
 3. Agent IDs should be the same as in the conversation history
 4. Always update state of some agents, add some randomness to the state updates
 
+Important notes:
+- During one interaction, it is possible to update multiple agents
+- Try to maintain some variety in responses
+- The agents should react to user messages in a meaningful way
+- The agents should gradually transition from one mood to another based on user input
+- The agents should have different responses based on their mood
+- The agents should have different responses based on their current state
+- If one of the agent is making a longer speech, the other agents should be silent.
+
 ${scenario.instruction}`;
 };
 
