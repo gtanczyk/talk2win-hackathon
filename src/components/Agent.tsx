@@ -35,7 +35,7 @@ export const Agent: React.FC<AgentType & { scenarioType: ScenarioType }> = ({
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDelayedSpokenText(spokenText);
-    }, Math.random() * 5000 + 1000);
+    }, Math.random() * 5000);
     return () => clearTimeout(timeout);
   }, [spokenText]);
 
