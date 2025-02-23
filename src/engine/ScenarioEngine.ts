@@ -79,7 +79,7 @@ export class ScenarioEngine {
     // Calculate position in a grid-like pattern
     const row = Math.floor(index / 5);
     const col = index % 5;
-    const x = (col + Math.random() - Math.random()) * 110;
+    const x = (col + Math.random() - Math.random()) * 190;
     const y = (row + Math.random() - Math.random()) * 90;
 
     return {

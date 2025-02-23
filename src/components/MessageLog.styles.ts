@@ -13,7 +13,7 @@ const moveUpAndFade = keyframes`
 
 export const MessageContainer = styled.div`
   position: fixed;
-  bottom: 100px; /* Position above the input container */
+  bottom: 120px; /* Position above the input container */
   left: 0;
   right: 0;
   display: flex;

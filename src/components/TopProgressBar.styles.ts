@@ -8,7 +8,7 @@ const glowAnimation = keyframes`
 
 export const TopProgressBarContainer = styled.div`
   position: fixed;
-  top: 30px;
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
   width: 600px;
@@ -23,7 +23,7 @@ export const ProgressBarOuter = styled.div`
   border: 2px solid #0ff;
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -34,17 +34,17 @@ export const ProgressBarOuter = styled.div`
     border: 1px solid #fff;
     pointer-events: none;
   }
-  
+
   animation: ${glowAnimation} 2s infinite;
 `;
 
 export const ProgressBarInner = styled.div<{ progress: number }>`
-  width: ${props => Math.min(Math.max(props.progress, 0), 100)}%;
+  width: ${(props) => Math.min(Math.max(props.progress, 0), 100)}%;
   height: 100%;
   background-color: #0ff;
   transition: width 0.3s ease-out;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -52,18 +52,13 @@ export const ProgressBarInner = styled.div<{ progress: number }>`
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
   }
 `;
 
 export const ProgressText = styled.div`
   position: fixed;
-  top:10px;
+  top: 10px;
   width: 100%;
   text-align: center;
   color: #fff;

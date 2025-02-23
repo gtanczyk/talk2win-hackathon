@@ -8,7 +8,7 @@ const pulse = keyframes`
 
 export const Container = styled.div`
   position: fixed;
-  bottom: 20px;
+  bottom: 80px;
   left: 0;
   right: 0;
   padding: 20px;
