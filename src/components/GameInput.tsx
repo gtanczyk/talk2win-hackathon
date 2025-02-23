@@ -4,7 +4,7 @@ import { MessageLog, MessageItem } from './MessageLog';
 
 interface GameInputProps {
   isProcessingInput: boolean;
-  onSubmit: (text: string) => void;
+  onSubmit: (text: string) => Promise<void>;
 }
 
 export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmit }) => {
@@ -13,6 +13,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
   const [, setSpeechRecognitionError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const transcriptRef = useRef<string>('');
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserInput(event.target.value);
@@ -20,11 +21,11 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
 
   const handleKeyPress = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && userInput.trim()) {
-      handleSubmit();
+      handleSubmit(userInput.trim());
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (userInput: string) => {
     if (!userInput.trim() || isProcessingInput) return;
 
     const newMessage: MessageItem = {
@@ -33,7 +34,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
     };
 
     setMessages((prevMessages) => [...prevMessages, newMessage]);
-    onSubmit(userInput);
+    await onSubmit(userInput);
     setUserInput('');
 
     if (isSpeechRecognitionActive && recognitionRef.current) {
@@ -70,6 +71,8 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
       recognition.onstart = () => {
         setIsSpeechRecognitionActive(true);
         setSpeechRecognitionError(null);
+        transcriptRef.current = '';
+        setUserInput('');
       };
 
       recognition.onresult = (event) => {
@@ -77,6 +80,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
           .map((result) => result[0].transcript)
           .join('');
         setUserInput(transcript);
+        transcriptRef.current = transcript;
       };
 
       recognition.onerror = (event) => {
@@ -84,7 +88,8 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
         setIsSpeechRecognitionActive(false);
       };
 
-      recognition.onend = () => {
+      recognition.onend = async () => {
+        await handleSubmit(transcriptRef.current);
         setIsSpeechRecognitionActive(false);
       };
 
