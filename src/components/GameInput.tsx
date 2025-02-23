@@ -1,5 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Container, InputContainer, TextInput, MicrophoneButton, FloatingText } from './GameInput.styles';
+import React, { useRef, useState } from 'react';
+import { Container, InputContainer, TextInput, MicrophoneButton } from './GameInput.styles';
+import { MessageLog, MessageItem } from './MessageLog';
 
 interface GameInputProps {
   isProcessingInput: boolean;
@@ -11,7 +12,8 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
   const [isSpeechRecognitionActive, setIsSpeechRecognitionActive] = useState(false);
   const [, setSpeechRecognitionError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const [submittedText, setSubmittedText] = useState('');
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserInput(event.target.value);
   };
@@ -25,24 +27,24 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
   const handleSubmit = () => {
     if (!userInput.trim() || isProcessingInput) return;
 
+    const newMessage: MessageItem = {
+      id: Date.now().toString(),
+      text: userInput,
+    };
+
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
     onSubmit(userInput);
-    setSubmittedText(userInput); // Set the submitted text
     setUserInput('');
 
     if (isSpeechRecognitionActive && recognitionRef.current) {
       recognitionRef.current.stop();
     }
+
+    // Remove the message after animation completes
+    setTimeout(() => {
+      setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== newMessage.id));
+    }, 10000);
   };
-
-  useEffect(() => {
-    if (submittedText) {
-      const timer = setTimeout(() => {
-        setSubmittedText('');
-      }, 6000); // Clear submittedText after 1 second
-
-      return () => clearTimeout(timer);
-    }
-  }, [submittedText]);
 
   const toggleSpeechRecognition = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -95,6 +97,7 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
 
   return (
     <Container>
+      <MessageLog messages={messages} />
       <InputContainer>
         <TextInput
           type="text"
@@ -113,7 +116,6 @@ export const GameInput: React.FC<GameInputProps> = ({ isProcessingInput, onSubmi
           🎤
         </MicrophoneButton>
       </InputContainer>
-      {submittedText && <FloatingText>{submittedText}</FloatingText>}
     </Container>
   );
 };

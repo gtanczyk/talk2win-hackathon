@@ -86,9 +86,9 @@ export class ScenarioEngine {
       id: `agent-${index}`,
       x,
       y,
-      mood: Mood.NEUTRAL,
-      facialExpression: FacialExpression.NEUTRAL,
-      bodyLanguageExpression: BodyLanguageExpression.STANDING,
+      mood: Object.values(Mood).sort(() => Math.random() - 0.5)[0],
+      facialExpression: Object.values(FacialExpression).sort(() => Math.random() - 0.5)[0],
+      bodyLanguageExpression: Object.values(BodyLanguageExpression).sort(() => Math.random() - 0.5)[0],
       thinkingState: '',
       spokenText: '',
     };

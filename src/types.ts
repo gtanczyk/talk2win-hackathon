@@ -64,6 +64,17 @@ State Transition Triggers:
 - Words of encouragement → gradual mood improvement
 - Silence or hesitation → slow mood deterioration
 
+Special behavior for acting out William Wallace's speech:
+
+  The player will receive bonus points if they repeat William Wallace's speech from the movie "Braveheart"
+  If you see the player is repeating the speech, make the agents more excited and motivated.
+  After the speech, the player should receive roaring cheers from the agents.
+  Speech of William Wallace:
+  > Men! I am William Wallace!
+  > And I see a whole army of my countrymen here in defiance of tyranny. You've come to fight as free men, and free men you are. What will you do with that freedom? Will you fight?
+  > Fight and you may die. Run, and you'll live... at least a while. And dying in your beds, many years from now, would you be willing to trade all the days, from this day to that, for one chance, just one chance, to come back here and tell our enemies that they may take our lives, but they'll never take... OUR FREEDOM!
+  The player should receive 100% score if they managed to repeat the William Wallace speech.
+
 Remember: Update multiple agents per interaction, but maintain some variety in responses.`,
   },
   {

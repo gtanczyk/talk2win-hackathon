@@ -6,19 +6,6 @@ const pulse = keyframes`
   100% { transform: scale(1); }
 `;
 
-const floatFadeOut = keyframes`
-  0% {
-    opacity: 1;
-    transform: translateX(-50%)  translateY(-50%) scale(1);
-    margin-top: 0px;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%)  translateY(-50%) scale(0.5);
-    margin-top: -20px;
-  }
-`;
-
 export const Container = styled.div`
   position: fixed;
   bottom: 20px;
@@ -90,15 +77,4 @@ export const MicrophoneButton = styled.button<{ isListening: boolean }>`
     cursor: not-allowed;
     animation: none;
   }
-`;
-
-export const FloatingText = styled.div`
-  position: fixed;
-  top: 600px; /* Start above the container */
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
-  color: #fff;
-  font-size: 40px;
-  pointer-events: none; /* Prevent clicks on the text */
-  animation: 3s ${floatFadeOut} 3s ease-out forwards;
 `;

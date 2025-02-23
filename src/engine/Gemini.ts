@@ -35,6 +35,7 @@ const functionSchema: FunctionDeclaration = {
       agents: {
         type: SchemaType.ARRAY,
         description: 'Array of agents with updated states',
+        maxItems: 10,
         items: {
           type: SchemaType.OBJECT,
           properties: {

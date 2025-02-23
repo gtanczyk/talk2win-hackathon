@@ -62,7 +62,9 @@ export const ScenarioScreen: React.FC<ScenarioScreenProps> = ({ scenarioType, on
   useEffect(() => {
     if (gameState === GameState.PLAYING) {
       if (goalProgress! >= 100) {
-        setGameState(GameState.VICTORY);
+        setTimeout(() => {
+          setGameState(GameState.VICTORY);
+        }, 3000);
       } else if (goalProgress! <= 0) {
         setGameState(GameState.GAME_OVER);
       }
